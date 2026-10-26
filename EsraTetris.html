@@ -1,0 +1,526 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Esra'nın Tetrisi</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one-screen stack — ESRA wordmark + score / board with side rail / thumb pad */
+:root{
+  --bg:#1b1126; --bg2:#251634; --panel:#2c1b3d; --line:#3d2854; --grid:rgba(240,220,255,.07);
+  --ink:#f7eef8; --muted:#b7a3c6; --accent:#ff6b8b;
+  --p-i:#4fd1c5; --p-o:#ffc861; --p-t:#b48cff; --p-s:#7ee08a; --p-z:#ff6b8b; --p-j:#6c8cff; --p-l:#ff9a5a;
+  --font-display:"Bricolage Grotesque", ui-rounded, system-ui, sans-serif;
+  --font-num:"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  color-scheme:dark;
+}
+html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+body{background:var(--bg) radial-gradient(120% 60% at 50% -10%, #3a1f4f 0%, transparent 60%) no-repeat;color:var(--ink);font-family:var(--font-display);
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+button:focus-visible{outline:2px solid var(--p-o);outline-offset:2px}
+.app{height:100%;box-sizing:border-box;display:flex;flex-direction:column;gap:10px;max-width:560px;margin:0 auto;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:10px 12px}
+.lbl{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+/* header */
+.top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.brand{display:flex;flex-direction:column;gap:2px}
+.word{display:flex;gap:5px}
+.word span{width:34px;height:38px;display:grid;place-items:center;border-radius:10px;font-weight:800;font-size:22px;line-height:1;
+  color:var(--muted);border:1.5px solid var(--line);background:transparent;transition:background .25s,color .25s,transform .25s,box-shadow .25s}
+.word span.on{color:#1b1126;border-color:transparent;background:var(--c);box-shadow:0 0 18px -4px var(--c);transform:translateY(-2px)}
+.word span:nth-child(1){--c:var(--p-z)} .word span:nth-child(2){--c:var(--p-o)} .word span:nth-child(3){--c:var(--p-i)} .word span:nth-child(4){--c:var(--p-t)}
+.word.burst span{animation:burst .9s ease}
+@keyframes burst{0%,100%{transform:translateY(-2px) scale(1)}30%{transform:translateY(-8px) scale(1.15)}60%{transform:translateY(0) scale(.96)}}
+.sub{font-size:11px;color:var(--muted);letter-spacing:.02em}
+.sub b{color:var(--ink);font-weight:700}
+.score{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.score .big{font-size:30px;font-weight:700;line-height:1;letter-spacing:-.02em}
+
+.stats{display:flex;align-items:center;gap:18px}
+.stats div{display:flex;flex-direction:column;gap:1px}
+.stats b{font-family:var(--font-num);font-variant-numeric:tabular-nums;font-size:16px;font-weight:700}
+.stats .icon{margin-left:auto;width:40px;height:40px;border-radius:12px;background:var(--panel);border:1px solid var(--line);display:grid;place-items:center}
+.icon svg{width:18px;height:18px}
+
+/* stage */
+.stage{flex:1;min-height:0;display:flex;gap:10px}
+.boardWrap{flex:1;min-width:0;position:relative;touch-action:none}
+#board{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:14px;background:var(--bg2);
+  box-shadow:0 0 0 1px var(--line), 0 20px 40px -20px rgba(0,0,0,.7)}
+.boardWrap.bump #board{animation:bump .14s ease-out}
+@keyframes bump{50%{transform:translate(-50%,calc(-50% + 4px))}}
+.side{width:74px;flex:none;display:flex;flex-direction:column;gap:10px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:8px 6px;display:flex;flex-direction:column;align-items:center;gap:6px}
+.panel canvas{width:60px}
+.holdp:disabled{opacity:.45}
+.meter{margin-top:auto;display:flex;flex-direction:column;gap:6px;align-items:center;padding:8px 6px}
+.meter .bar{width:10px;height:90px;border-radius:6px;background:var(--line);position:relative;overflow:hidden}
+.meter .bar i{position:absolute;inset:auto 0 0 0;height:0;border-radius:6px;background:linear-gradient(var(--p-t),var(--p-z));transition:height .3s}
+.meter .hint{font-size:10px;color:var(--muted);text-align:center;line-height:1.3}
+
+/* toast */
+.toast{position:absolute;left:0;right:0;top:28%;text-align:center;pointer-events:none;opacity:0}
+.toast b{display:block;font-size:30px;font-weight:800;letter-spacing:-.02em;text-shadow:0 4px 24px rgba(0,0,0,.6);color:var(--tc,var(--ink))}
+.toast span{display:block;font-size:13px;color:var(--muted);margin-top:2px}
+.toast.show{animation:toast 1.3s ease forwards}
+@keyframes toast{0%{opacity:0;transform:translateY(10px) scale(.9)}15%{opacity:1;transform:translateY(0) scale(1.04)}25%{transform:scale(1)}75%{opacity:1}100%{opacity:0;transform:translateY(-14px)}}
+
+/* overlay */
+.overlay{position:absolute;inset:0;display:grid;place-items:center;z-index:5}
+.overlay[hidden]{display:none!important}
+.card{width:min(92%,300px);background:rgba(37,22,52,.88);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid var(--line);
+  border-radius:20px;padding:22px 18px;display:flex;flex-direction:column;gap:12px;text-align:center;box-shadow:0 30px 60px -20px rgba(0,0,0,.8)}
+.card h1{margin:0;font-size:34px;line-height:.95;font-weight:800;letter-spacing:-.03em;text-wrap:balance}
+.card h1 em{font-style:normal;background:linear-gradient(90deg,var(--p-z),var(--p-o),var(--p-i),var(--p-t));-webkit-background-clip:text;background-clip:text;color:transparent}
+.card h2{margin:0;font-size:26px;font-weight:800;letter-spacing:-.02em}
+.card p{margin:0;font-size:13px;line-height:1.45;color:var(--muted)}
+.card .final{font-family:var(--font-num);font-size:34px;font-weight:700;color:var(--ink)}
+.card .rec{color:var(--p-o);font-weight:700;font-size:15px}
+.cta{height:50px;border-radius:14px;background:var(--accent);color:#2a0d18;font-weight:800;font-size:17px;box-shadow:0 10px 24px -10px var(--accent)}
+.cta:active{transform:scale(.97)}
+.ghostbtn{height:44px;border-radius:14px;border:1px solid var(--line);font-weight:700;color:var(--ink)}
+.tips{font-size:11px!important;line-height:1.6!important}
+.ded{font-size:12px!important;color:var(--ink)!important;opacity:.8;font-style:italic}
+
+/* pad */
+.pad{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.pad button{height:58px;border-radius:16px;background:var(--panel);border:1px solid var(--line);display:grid;place-items:center;transition:transform .06s,background .1s}
+.pad button svg{width:24px;height:24px}
+.pad button:active,.pad button.down{transform:scale(.94);background:var(--line)}
+.pad .rot{background:var(--p-t);border-color:transparent;color:#1b1126}
+.pad .drop{background:var(--accent);border-color:transparent;color:#2a0d18}
+.pad .rot:active,.pad .drop:active{filter:brightness(.9)}
+
+@media (max-height:700px){.pad button{height:50px}.word span{width:30px;height:34px;font-size:19px}.score .big{font-size:26px}}
+@media (prefers-reduced-motion:reduce){.toast.show{animation:toastR 1.3s linear forwards}.word.burst span,.boardWrap.bump #board{animation:none}
+  @keyframes toastR{0%,80%{opacity:1}100%{opacity:0}}}
+</style>
+
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <div class="word" id="word" aria-label="ESRA harfleri"><span>E</span><span>S</span><span>R</span><span>A</span></div>
+      <div class="sub">Esra'nın <b>Tetrisi</b></div>
+    </div>
+    <div class="score"><span class="lbl">Skor</span><span id="score" class="num big">0</span></div>
+  </header>
+
+  <div class="stats">
+    <div><span class="lbl">Seviye</span><b id="level">1</b></div>
+    <div><span class="lbl">Satır</span><b id="lines">0</b></div>
+    <div><span class="lbl">Rekor</span><b id="best">0</b></div>
+    <button class="icon" id="pauseBtn" aria-label="Duraklat">
+      <svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1.5"/><rect x="14" y="5" width="4" height="14" rx="1.5"/></svg>
+    </button>
+  </div>
+
+  <main class="stage">
+    <div class="boardWrap" id="boardWrap">
+      <canvas id="board"></canvas>
+      <div class="toast" id="toast"><b></b><span></span></div>
+      <div class="overlay" id="overlay"><div class="card" id="card"></div></div>
+    </div>
+    <aside class="side">
+      <div class="panel"><span class="lbl">Sıradaki</span><canvas id="next" width="60" height="110"></canvas></div>
+      <button class="panel holdp" id="holdBtn" aria-label="Parçayı sakla"><span class="lbl">Sakla</span><canvas id="hold" width="60" height="50"></canvas></button>
+      <div class="panel meter" aria-label="Sıradaki harfe ilerleme">
+        <span class="lbl" id="nextLetterLbl">E</span>
+        <div class="bar"><i id="meterFill"></i></div>
+        <span class="hint" id="meterHint">3 satır</span>
+      </div>
+    </aside>
+  </main>
+
+  <nav class="pad" aria-label="Kontroller">
+    <button id="bLeft" aria-label="Sola"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <button id="bRight" aria-label="Sağa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+    <button id="bRot" class="rot" aria-label="Döndür"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v5h-5"/></svg></button>
+    <button id="bDown" aria-label="Yavaş indir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9l7 7 7-7"/></svg></button>
+    <button id="bDrop" class="drop" aria-label="Bırak"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 5l6 6 6-6"/><path d="M6 11l6 6 6-6"/><path d="M5 20h14"/></svg></button>
+  </nav>
+</div>
+
+<script>
+(() => {
+const COLS = 10, ROWS = 20, LINES_PER_LETTER = 3, LETTERS = ['E','S','R','A'];
+const SHAPES = {
+  I:[[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],
+  J:[[1,0,0],[1,1,1],[0,0,0]],
+  L:[[0,0,1],[1,1,1],[0,0,0]],
+  O:[[1,1],[1,1]],
+  S:[[0,1,1],[1,1,0],[0,0,0]],
+  T:[[0,1,0],[1,1,1],[0,0,0]],
+  Z:[[1,1,0],[0,1,1],[0,0,0]]
+};
+const $ = id => document.getElementById(id);
+const css = getComputedStyle(document.documentElement);
+const tok = n => css.getPropertyValue(n).trim();
+const COLORS = {I:tok('--p-i'),O:tok('--p-o'),T:tok('--p-t'),S:tok('--p-s'),Z:tok('--p-z'),J:tok('--p-j'),L:tok('--p-l')};
+const GRID = tok('--grid');
+const LETTER_COLORS = [tok('--p-z'),tok('--p-o'),tok('--p-i'),tok('--p-t')];
+
+const wrap = $('boardWrap'), cv = $('board'), ctx = cv.getContext('2d');
+const nextCv = $('next'), nctx = nextCv.getContext('2d');
+const holdCv = $('hold'), hctx = holdCv.getContext('2d');
+const overlay = $('overlay'), card = $('card'), toastEl = $('toast');
+const dpr = Math.min(window.devicePixelRatio || 1, 3);
+let cell = 24;
+
+let board, cur, queue, bag, hold, canHold, score, lines, level, esraProg, state = 'menu';
+let dropAcc = 0, lockAcc = 0, lockResets = 0, clearing = null, last = 0, best = 0, wakeLock = null;
+
+try { best = parseInt(localStorage.getItem('esra-tetris-best') || '0', 10) || 0; } catch (e) {}
+
+function setupMini(c, w, h){ c.style.width = w+'px'; c.style.height = h+'px'; c.width = w*dpr; c.height = h*dpr; c.getContext('2d').setTransform(dpr,0,0,dpr,0,0); }
+setupMini(nextCv, 60, 110); setupMini(holdCv, 60, 50);
+
+function fit(){
+  const r = wrap.getBoundingClientRect();
+  cell = Math.max(8, Math.floor(Math.min(r.width/COLS, r.height/ROWS)));
+  const W = cell*COLS, H = cell*ROWS;
+  cv.style.width = W+'px'; cv.style.height = H+'px';
+  cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  draw();
+}
+new ResizeObserver(fit).observe(wrap);
+
+/* ---------- core ---------- */
+const emptyRow = () => Array(COLS).fill(null);
+const newBoard = () => Array.from({length:ROWS}, emptyRow);
+function fromBag(){
+  if (!bag.length){ bag = Object.keys(SHAPES); for (let i=bag.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; [bag[i],bag[j]]=[bag[j],bag[i]]; } }
+  return bag.pop();
+}
+function makePiece(t){ const m = SHAPES[t].map(r=>r.slice()); return {t, m, x:Math.floor((COLS-m[0].length)/2), y: t==='I' ? -1 : 0}; }
+const rot = m => m[0].map((_,i)=>m.map(r=>r[i]).reverse());
+function collide(m, x, y){
+  for (let r=0;r<m.length;r++) for (let c=0;c<m[r].length;c++){
+    if (!m[r][c]) continue;
+    const nx=x+c, ny=y+r;
+    if (nx<0 || nx>=COLS || ny>=ROWS) return true;
+    if (ny>=0 && board[ny][nx]) return true;
+  }
+  return false;
+}
+const grounded = () => collide(cur.m, cur.x, cur.y+1);
+
+function reset(){
+  board = newBoard(); bag = []; queue = [fromBag(), fromBag(), fromBag()];
+  hold = null; score = 0; lines = 0; level = 1; esraProg = 0; clearing = null;
+  spawnNext(); updateHUD(); drawSide();
+}
+function spawnNext(){ cur = makePiece(queue.shift()); queue.push(fromBag()); canHold = true; afterSpawn(); }
+function afterSpawn(){
+  dropAcc = 0; lockAcc = 0; lockResets = 0;
+  if (collide(cur.m, cur.x, cur.y)) { gameOver(); return; }
+  drawSide();
+}
+function onMoved(){ if (grounded() && lockResets < 15){ lockAcc = 0; lockResets++; } }
+function move(dx){ if (!cur || clearing) return; if (!collide(cur.m, cur.x+dx, cur.y)){ cur.x += dx; onMoved(); } }
+function rotate(){
+  if (!cur || clearing || cur.t==='O') return;
+  const m = rot(cur.m);
+  const kicks = cur.t==='I' ? [[0,0],[-1,0],[1,0],[-2,0],[2,0],[0,-1]] : [[0,0],[-1,0],[1,0],[0,-1],[-1,-1],[1,-1]];
+  for (const [kx,ky] of kicks){ if (!collide(m, cur.x+kx, cur.y+ky)){ cur.m=m; cur.x+=kx; cur.y+=ky; onMoved(); return; } }
+}
+function softDrop(){
+  if (!cur || clearing) return;
+  if (!grounded()){ cur.y++; score += 1; dropAcc = 0; updateHUD(); }
+}
+function hardDrop(){
+  if (!cur || clearing) return;
+  let d = 0; while (!grounded()){ cur.y++; d++; }
+  score += d*2;
+  wrap.classList.remove('bump'); void wrap.offsetWidth; wrap.classList.add('bump');
+  lockPiece();
+}
+function doHold(){
+  if (!cur || clearing || !canHold || state!=='play') return;
+  if (hold == null){ hold = cur.t; spawnNext(); }
+  else { const t = hold; hold = cur.t; cur = makePiece(t); afterSpawn(); }
+  canHold = false; drawSide();
+}
+function lockPiece(){
+  const {m,x,y,t} = cur;
+  for (let r=0;r<m.length;r++) for (let c=0;c<m[r].length;c++){
+    if (!m[r][c]) continue;
+    if (y+r < 0){ gameOver(); return; }
+    board[y+r][x+c] = t;
+  }
+  cur = null;
+  const full = [];
+  for (let r=0;r<ROWS;r++) if (board[r].every(Boolean)) full.push(r);
+  if (full.length){ clearing = {rows:full, t:0}; }
+  else spawnNext();
+  updateHUD();
+}
+
+const MSG = {
+  1: [['Güzel, Esra!',''],['Tık!','bir satır gitti'],['Akıyor','böyle devam']],
+  2: [['İkili!','Esra iş başında'],['Çift satır!','temiz iş']],
+  3: [['Üçleme!','durdurulamaz Esra'],['Üç satır!','ustalık bu']],
+  4: [['ESRA-TRIS!','dört satır birden']]
+};
+const pick = a => a[(Math.random()*a.length)|0];
+
+function finishClear(){
+  const rows = clearing.rows, n = rows.length;
+  board = board.filter((_,i)=>!rows.includes(i));
+  while (board.length < ROWS) board.unshift(emptyRow());
+  clearing = null;
+  score += [0,100,300,500,800][n] * level;
+  lines += n;
+  const prevLevel = level; level = Math.floor(lines/10) + 1;
+  const prevLit = Math.floor(esraProg / LINES_PER_LETTER);
+  esraProg += n;
+  let lit = Math.floor(esraProg / LINES_PER_LETTER);
+  const [a,b] = pick(MSG[n]);
+  let main = a, sub = b, color = n===4 ? LETTER_COLORS[0] : '';
+  if (lit >= 4){
+    const bonus = 1000 * level;
+    score += bonus;
+    esraProg -= 4*LINES_PER_LETTER; lit = Math.floor(esraProg / LINES_PER_LETTER);
+    main = 'E·S·R·A'; sub = '+' + bonus.toLocaleString('tr-TR') + ' bonus'; color = LETTER_COLORS[3];
+    burstWord();
+  } else if (lit > prevLit){
+    sub = '"' + LETTERS[lit-1] + '" harfi yandı'; color = LETTER_COLORS[lit-1];
+  }
+  if (level > prevLevel) { sub = 'Seviye ' + level + ' · hız arttı'; }
+  showToast(main, sub, color);
+  spawnNext(); updateHUD();
+}
+
+const gravity = () => Math.max(60, 800 * Math.pow(0.84, level-1));
+
+function step(dt){
+  if (clearing){ clearing.t += dt; if (clearing.t >= 240) finishClear(); return; }
+  if (!cur) return;
+  if (grounded()){
+    lockAcc += dt;
+    if (lockAcc >= 500) lockPiece();
+  } else {
+    lockAcc = 0;
+    dropAcc += dt;
+    const g = gravity();
+    while (dropAcc >= g){ dropAcc -= g; if (!grounded()) cur.y++; else break; }
+  }
+}
+
+function loop(ts){
+  const dt = Math.min(50, ts - (last || ts)); last = ts;
+  if (state === 'play') step(dt);
+  draw();
+  requestAnimationFrame(loop);
+}
+
+/* ---------- drawing ---------- */
+function rr(c, x, y, w, h, r){
+  c.beginPath(); c.moveTo(x+r,y); c.lineTo(x+w-r,y); c.quadraticCurveTo(x+w,y,x+w,y+r);
+  c.lineTo(x+w,y+h-r); c.quadraticCurveTo(x+w,y+h,x+w-r,y+h); c.lineTo(x+r,y+h);
+  c.quadraticCurveTo(x,y+h,x,y+h-r); c.lineTo(x,y+r); c.quadraticCurveTo(x,y,x+r,y); c.closePath();
+}
+function drawCell(c, px, py, s, color, ghost){
+  const pad = Math.max(1, s*0.06), x = px+pad, y = py+pad, w = s-2*pad, r = w*0.26;
+  if (ghost){
+    c.save(); c.globalAlpha = .45; c.strokeStyle = color; c.lineWidth = Math.max(1.5, s*0.07);
+    rr(c, x+1, y+1, w-2, w-2, r); c.stroke(); c.restore(); return;
+  }
+  c.fillStyle = color; rr(c, x, y, w, w, r); c.fill();
+  const g = c.createLinearGradient(0, y, 0, y+w);
+  g.addColorStop(0, 'rgba(255,255,255,.42)'); g.addColorStop(.5, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(0,0,0,.2)');
+  c.fillStyle = g; rr(c, x, y, w, w, r); c.fill();
+  c.fillStyle = 'rgba(255,255,255,.55)';
+  rr(c, x+w*0.18, y+w*0.14, w*0.28, w*0.12, w*0.06); c.fill();
+}
+function draw(){
+  if (!board) { board = newBoard(); }
+  const W = cell*COLS, H = cell*ROWS;
+  ctx.clearRect(0,0,W,H);
+  // watermark: the next ESRA letter to light up
+  const nextIdx = Math.min(3, Math.floor((esraProg||0)/LINES_PER_LETTER));
+  ctx.save();
+  ctx.globalAlpha = .06; ctx.fillStyle = LETTER_COLORS[nextIdx];
+  ctx.font = `800 ${Math.round(cell*11)}px "Bricolage Grotesque", system-ui, sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(LETTERS[nextIdx], W/2, H/2 + cell*0.6);
+  ctx.restore();
+  // grid dots
+  ctx.fillStyle = GRID;
+  for (let r=1;r<ROWS;r++) for (let c=1;c<COLS;c++){ ctx.beginPath(); ctx.arc(c*cell, r*cell, Math.max(1, cell*0.05), 0, Math.PI*2); ctx.fill(); }
+  // settled
+  for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++){ const t = board[r][c]; if (t) drawCell(ctx, c*cell, r*cell, cell, COLORS[t]); }
+  // clearing flash
+  if (clearing){
+    const a = 1 - clearing.t/240;
+    ctx.save(); ctx.fillStyle = `rgba(255,248,252,${(.9*a).toFixed(3)})`;
+    for (const r of clearing.rows){ rr(ctx, 2, r*cell+2, W-4, cell-4, cell*0.3); ctx.fill(); }
+    ctx.restore();
+  }
+  if (cur && state !== 'menu'){
+    let gy = cur.y; while (!collide(cur.m, cur.x, gy+1)) gy++;
+    eachCell(cur.m, (r,c)=>{ if (gy+r >= 0) drawCell(ctx, (cur.x+c)*cell, (gy+r)*cell, cell, COLORS[cur.t], true); });
+    eachCell(cur.m, (r,c)=>{ if (cur.y+r >= 0) drawCell(ctx, (cur.x+c)*cell, (cur.y+r)*cell, cell, COLORS[cur.t]); });
+  }
+}
+function eachCell(m, fn){ for (let r=0;r<m.length;r++) for (let c=0;c<m[r].length;c++) if (m[r][c]) fn(r,c); }
+function trimmed(t){
+  const m = SHAPES[t]; const rows = [], cols = new Set();
+  m.forEach((row,r)=>row.forEach((v,c)=>{ if (v){ rows.push(r); cols.add(c); } }));
+  const r0 = Math.min(...rows), r1 = Math.max(...rows), c0 = Math.min(...cols), c1 = Math.max(...cols);
+  return {m, r0, c0, h:r1-r0+1, w:c1-c0+1};
+}
+function drawMini(c, t, cx, cy, s, dim){
+  const {m,r0,c0,h,w} = trimmed(t);
+  const ox = cx - w*s/2, oy = cy - h*s/2;
+  c.save(); if (dim) c.globalAlpha = .4;
+  eachCell(m, (r,col)=>drawCell(c, ox+(col-c0)*s, oy+(r-r0)*s, s, COLORS[t]));
+  c.restore();
+}
+function drawSide(){
+  nctx.clearRect(0,0,60,110); hctx.clearRect(0,0,60,50);
+  if (queue){ drawMini(nctx, queue[0], 30, 26, 13); drawMini(nctx, queue[1], 30, 80, 10, true); }
+  if (hold) drawMini(hctx, hold, 30, 25, 12, !canHold);
+  $('holdBtn').disabled = state==='play' && !canHold && hold!=null;
+}
+
+/* ---------- HUD & overlays ---------- */
+const fmt = n => n.toLocaleString('tr-TR');
+function updateHUD(){
+  $('score').textContent = fmt(score); $('level').textContent = level; $('lines').textContent = lines; $('best').textContent = fmt(Math.max(best, score));
+  const lit = Math.floor(esraProg / LINES_PER_LETTER);
+  [...$('word').children].forEach((s,i)=>s.classList.toggle('on', i < lit));
+  const idx = Math.min(3, lit), inLetter = esraProg % LINES_PER_LETTER;
+  $('nextLetterLbl').textContent = LETTERS[idx];
+  $('nextLetterLbl').style.color = LETTER_COLORS[idx];
+  $('meterFill').style.height = (inLetter / LINES_PER_LETTER * 100) + '%';
+  const left = LINES_PER_LETTER - inLetter;
+  $('meterHint').textContent = left + ' satır';
+}
+function burstWord(){
+  const w = $('word');
+  [...w.children].forEach(s=>s.classList.add('on'));
+  w.classList.remove('burst'); void w.offsetWidth; w.classList.add('burst');
+  setTimeout(()=>{ w.classList.remove('burst'); updateHUD(); }, 950);
+}
+function showToast(main, sub, color){
+  toastEl.querySelector('b').textContent = main;
+  toastEl.querySelector('span').textContent = sub || '';
+  toastEl.style.setProperty('--tc', color || 'var(--ink)');
+  toastEl.classList.remove('show'); void toastEl.offsetWidth; toastEl.classList.add('show');
+}
+function showOverlay(kind){
+  overlay.hidden = false;
+  if (kind === 'menu'){
+    card.innerHTML = `<h1><em>Esra'nın</em><br>Tetrisi</h1>
+      <p>Her ${LINES_PER_LETTER} satırda adının bir harfi yanar. E, S, R ve A yanınca büyük bonus gelir.</p>
+      <button class="cta" data-a="start">Başla</button>
+      <p class="tips">Dokun: döndür · Sürükle: kaydır<br>Aşağı fırlat: bırak · Sağdaki kutu: sakla</p>
+      <p class="ded">Sevgiyle, eşinden.</p>`;
+  } else if (kind === 'pause'){
+    card.innerHTML = `<h2>Mola, Esra</h2><p>Parçalar seni bekliyor.</p>
+      <button class="cta" data-a="resume">Devam et</button><button class="ghostbtn" data-a="start">Baştan başla</button>`;
+  } else if (kind === 'over'){
+    const isRecord = score > 0 && score >= best;
+    card.innerHTML = `<h2>Oyun bitti</h2><div class="final">${fmt(score)}</div>
+      <p class="rec">${isRecord ? 'Yeni rekor, Esra!' : 'Rekorun: ' + fmt(best)}</p>
+      <p>${lines} satır · Seviye ${level}</p>
+      <button class="cta" data-a="start">Tekrar oyna</button>`;
+  }
+  const b = card.querySelector('.cta'); if (b) setTimeout(()=>b.focus({preventScroll:true}), 50);
+}
+overlay.addEventListener('click', e=>{
+  const a = e.target.closest('[data-a]'); if (!a) return;
+  if (a.dataset.a === 'start') start();
+  if (a.dataset.a === 'resume') resume();
+});
+function start(){ reset(); state = 'play'; overlay.hidden = true; last = 0; requestWake(); showToast('Hadi Esra!', 'ilk harf: E', LETTER_COLORS[0]); }
+function pause(){ if (state !== 'play') return; state = 'pause'; showOverlay('pause'); }
+function resume(){ if (state !== 'pause') return; state = 'play'; overlay.hidden = true; last = 0; requestWake(); }
+function gameOver(){
+  state = 'over'; cur = null;
+  if (score > best){ best = score; try { localStorage.setItem('esra-tetris-best', String(best)); } catch(e){} }
+  updateHUD(); showOverlay('over');
+}
+async function requestWake(){ try { if ('wakeLock' in navigator && !wakeLock) { wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release', ()=>{ wakeLock = null; }); } } catch(e){} }
+document.addEventListener('visibilitychange', ()=>{ if (document.hidden) pause(); });
+$('pauseBtn').addEventListener('click', ()=>{ state === 'play' ? pause() : state === 'pause' && resume(); });
+
+/* ---------- input ---------- */
+function bindPad(id, fn, repeat){
+  const btn = $(id); let t1 = 0, t2 = 0;
+  const stop = () => { clearTimeout(t1); clearInterval(t2); btn.classList.remove('down'); };
+  btn.addEventListener('pointerdown', e=>{
+    e.preventDefault(); if (state !== 'play') return;
+    btn.classList.add('down'); fn();
+    if (repeat){ t1 = setTimeout(()=>{ t2 = setInterval(()=>{ if (state==='play') fn(); else stop(); }, 45); }, 170); }
+  });
+  ['pointerup','pointercancel','pointerleave'].forEach(ev=>btn.addEventListener(ev, stop));
+}
+bindPad('bLeft', ()=>move(-1), true);
+bindPad('bRight', ()=>move(1), true);
+bindPad('bRot', rotate, false);
+bindPad('bDown', softDrop, true);
+bindPad('bDrop', hardDrop, false);
+$('holdBtn').addEventListener('pointerdown', e=>{ e.preventDefault(); doHold(); });
+
+let g = null;
+wrap.addEventListener('pointerdown', e=>{
+  if (state !== 'play' || e.target.closest('.overlay')) return;
+  g = {id:e.pointerId, x0:e.clientX, y0:e.clientY, lx:e.clientX, ly:e.clientY, t0:performance.now(), moved:false};
+  try { wrap.setPointerCapture(e.pointerId); } catch(_){}
+});
+wrap.addEventListener('pointermove', e=>{
+  if (!g || e.pointerId !== g.id || state !== 'play') return;
+  const stepPx = cell * 0.9;
+  let dx = e.clientX - g.lx;
+  while (dx >= stepPx){ move(1); g.lx += stepPx; dx -= stepPx; g.moved = true; }
+  while (dx <= -stepPx){ move(-1); g.lx -= stepPx; dx += stepPx; g.moved = true; }
+  const totX = Math.abs(e.clientX - g.x0), totY = e.clientY - g.y0;
+  let dy = e.clientY - g.ly;
+  if (totY > totX){ while (dy >= stepPx){ softDrop(); g.ly += stepPx; dy -= stepPx; g.moved = true; } }
+  else g.ly = e.clientY;
+});
+function endGesture(e){
+  if (!g || e.pointerId !== g.id) return;
+  const dt = performance.now() - g.t0, dx = e.clientX - g.x0, dy = e.clientY - g.y0;
+  if (state === 'play'){
+    if (!g.moved && dt < 300 && Math.abs(dx) < 12 && Math.abs(dy) < 12) rotate();
+    else if (dy > cell*2 && dy/dt > 0.9 && Math.abs(dx) < dy*0.6) hardDrop();
+  }
+  g = null;
+}
+wrap.addEventListener('pointerup', endGesture);
+wrap.addEventListener('pointercancel', ()=>{ g = null; });
+
+document.addEventListener('keydown', e=>{
+  if (state === 'menu' || state === 'over'){ if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); start(); } return; }
+  if (e.key === 'p' || e.key === 'Escape'){ state === 'play' ? pause() : resume(); return; }
+  if (state !== 'play') return;
+  const k = e.key;
+  if (k === 'ArrowLeft') move(-1);
+  else if (k === 'ArrowRight') move(1);
+  else if (k === 'ArrowDown') softDrop();
+  else if (k === 'ArrowUp' || k === 'x' || k === 'X') rotate();
+  else if (k === ' ') hardDrop();
+  else if (k === 'c' || k === 'C' || k === 'Shift') doHold();
+  else return;
+  e.preventDefault();
+});
+document.addEventListener('touchmove', e=>e.preventDefault(), {passive:false});
+document.addEventListener('gesturestart', e=>e.preventDefault());
+document.addEventListener('dblclick', e=>e.preventDefault());
+
+/* ---------- boot ---------- */
+reset(); state = 'menu';
+showOverlay('menu'); updateHUD(); fit();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(draw);
+requestAnimationFrame(loop);
+})();
+</script>
+
+</body></html>
