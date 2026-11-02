@@ -1,0 +1,463 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Altı Yollu Vana Kaçağı</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: kontrol odası — solda tıklanabilir tesisat şeması, sağda kumanda paneli, altta göstergeler, grafik ve test defteri */
+:root{
+  --bg:#eef2f4; --panel:#ffffff; --sunk:#f5f8fa; --fg:#14212b; --muted:#5a6b78; --line:#cdd6dc;
+  --pipe:#a3b0ba; --water:#2a7fbf; --water-soft:#d3e7f5; --leak:#cf3f26; --leak-soft:#f9e1dc; --ok:#2c8659; --warn:#b7791f;
+  --display:"Barlow Condensed","Arial Narrow",sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f171d; --panel:#16222b; --sunk:#111b22; --fg:#e4edf2; --muted:#93a6b3; --line:#2a3a46;
+  --pipe:#4f6170; --water:#4ea3e0; --water-soft:#183a54; --leak:#ff6a4d; --leak-soft:#4a1e16; --ok:#4cc38a; --warn:#e0a54a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f171d; --panel:#16222b; --sunk:#111b22; --fg:#e4edf2; --muted:#93a6b3; --line:#2a3a46;
+  --pipe:#4f6170; --water:#4ea3e0; --water-soft:#183a54; --leak:#ff6a4d; --leak-soft:#4a1e16; --ok:#4cc38a; --warn:#e0a54a; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5}
+.wrap{max-width:1240px;margin:0 auto;padding-block:24px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:18px}
+h1{font-family:var(--display);font-size:clamp(28px,4.5vw,42px);line-height:1.05;margin:0;text-wrap:balance}
+h2{font-family:var(--display);font-size:20px;margin:0;letter-spacing:.02em}
+h3{font-size:12px;margin:0;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.lede{max-width:75ch;margin:6px 0 0;color:var(--muted)}
+.main{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:18px;align-items:start}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;min-width:0}
+.schem{overflow-x:auto}
+.schem svg{display:block;width:100%;min-width:700px;height:auto}
+.hint{padding:10px 16px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+.panel{display:grid;gap:0}
+.sec{padding:14px 16px;border-bottom:1px solid var(--line);display:grid;gap:10px}
+.sec:last-child{border-bottom:0}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{font:600 14px var(--body);background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:8px 12px;cursor:pointer}
+.btn:hover{border-color:var(--muted)}
+.btn.pri{background:var(--water);border-color:var(--water);color:#fff}
+.btn.stop{background:var(--leak);border-color:var(--leak);color:#fff}
+.btn[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn:focus-visible,input:focus-visible,.vlv:focus-visible,.pumpg:focus-visible{outline:2px solid var(--water);outline-offset:2px}
+.dial{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.dial .btn{padding:7px 4px;font-size:12.5px;display:grid;line-height:1.2}
+.dial .btn small{font-family:var(--mono);font-size:10px;opacity:.75;font-weight:500}
+.vgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.vgrid .btn{font-size:13px;text-align:left;display:flex;justify-content:space-between;gap:6px}
+.vgrid .btn span:last-child{font-family:var(--mono);font-size:11px}
+.vgrid .btn.closed{border-color:var(--leak);color:var(--leak)}
+.sl{display:grid;grid-template-columns:minmax(0,1fr) 52px;gap:4px 10px;align-items:center;font-size:13.5px}
+.sl input{grid-column:1/-1;width:100%;accent-color:var(--leak)}
+.sl output{font-family:var(--mono);font-size:12px;text-align:right}
+.sl.blue input{accent-color:var(--water)}
+.chk{display:flex;gap:8px;align-items:center;font-size:14px;cursor:pointer}
+.chk input{accent-color:var(--water);width:16px;height:16px}
+.toast{background:var(--leak-soft);color:var(--fg);border-left:4px solid var(--leak);padding:10px 14px;border-radius:4px;font-size:14px}
+.gauges{display:grid;grid-template-columns:repeat(6,minmax(0,1fr))}
+.g{padding:12px 14px;border-right:1px solid var(--line);min-width:0}
+.g:last-child{border-right:0}
+.g .k{font-size:11.5px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.g .v{font-family:var(--mono);font-size:20px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.v.bad{color:var(--leak)} .v.good{color:var(--ok)}
+.lower{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}
+.pad{padding:16px;display:grid;gap:10px;align-content:start}
+.chart svg{width:100%;height:auto;display:block}
+.note{font-size:13px;color:var(--muted);margin:0}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:11.5px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;font-weight:600}
+td.mono{font-family:var(--mono);white-space:nowrap}
+.tag{font-family:var(--mono);font-size:11px;padding:2px 7px;border-radius:99px;white-space:nowrap}
+.tag.bad{background:var(--leak-soft);color:var(--leak)} .tag.good{background:var(--water-soft);color:var(--ok)}
+.empty{color:var(--muted);font-size:13px;padding:10px 0}
+.reveal{border-radius:6px;padding:10px 12px;font-size:14px}
+.reveal.ok{background:var(--water-soft)} .reveal.no{background:var(--leak-soft)}
+/* SVG */
+.pipe{fill:none;stroke:var(--pipe);stroke-width:9;stroke-linecap:round;stroke-linejoin:round}
+.pipe.thin{stroke-width:6}
+.flow{fill:none;stroke:var(--water);stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:8 12;opacity:0;animation:dash 1s linear infinite}
+.flow.on{opacity:1}
+.flow.leak{stroke:var(--leak)}
+.flow.rev{animation-direction:reverse}
+@keyframes dash{to{stroke-dashoffset:-20}}
+@media (prefers-reduced-motion:reduce){.flow{animation:none!important}}
+.wall{fill:none;stroke:var(--fg);stroke-width:3}
+.equip{fill:var(--panel);stroke:var(--fg);stroke-width:2}
+.water{fill:var(--water);opacity:.55}
+.lbl{font-family:var(--body);font-size:13px;fill:var(--fg)}
+.lbl.sm{font-size:11.5px;fill:var(--muted)}
+.lbl.mono{font-family:var(--mono);font-size:11.5px}
+.lbl.red{fill:var(--leak);font-weight:600}
+.dashline{stroke:var(--leak);stroke-width:1.5;stroke-dasharray:5 5}
+.ground{fill:var(--line);opacity:.35}
+.vlv,.pumpg{cursor:pointer}
+.vlv path{fill:var(--panel);stroke:var(--fg);stroke-width:2}
+.vlv.closed path{fill:var(--leak);stroke:var(--leak)}
+.vlv:hover path,.pumpg:hover circle{stroke-width:3}
+@media (max-width:980px){.main{grid-template-columns:1fr}.gauges{grid-template-columns:repeat(3,minmax(0,1fr))}.g:nth-child(3){border-right:0}.g:nth-child(-n+3){border-bottom:1px solid var(--line)}}
+@media (max-width:760px){.lower{grid-template-columns:1fr}}
+@media (max-width:480px){.gauges{grid-template-columns:repeat(2,minmax(0,1fr))}.g{border-right:1px solid var(--line)!important;border-bottom:1px solid var(--line)}.g:nth-child(2n){border-right:0!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Taşmalı havuz · 5 × 10 m · kum filtresi · altı yollu vana</div>
+    <h1>Havuzu siz işletin, kaçağı siz bulun</h1>
+    <p class="lede">Pompayı açıp kapatın, altı yollu vanayı çevirin, şemadaki vanalara tıklayarak hatları kapatın. Kırmızı akış sistemden kaybolan suyu gösterir. Sağdaki arıza ayarlarıyla hangi kusurun hangi belirtiyi verdiğini deneyin ya da usta modunda arızayı gizleyip test ederek bulun.</p>
+  </header>
+
+  <div class="main">
+    <section class="card" aria-label="Tesisat şeması">
+      <div class="schem">
+        <svg viewBox="0 0 900 530" id="svg" role="img" aria-labelledby="svgt">
+          <title id="svgt">Havuz, denge tankı, pompa, kum filtresi, altı yollu vana ve atık hattının tıklanabilir şeması</title>
+          <rect class="ground" x="0" y="120" width="900" height="410"/>
+          <path class="pipe" d="M200 360 V440 H470"/>
+          <path class="pipe" d="M470 400 V440"/>
+          <path class="pipe" d="M470 440 H600 V392"/>
+          <path class="pipe" d="M622 370 H650 V200 H703"/>
+          <path class="pipe" d="M747 200 H790 V470 H20 V168 H40" id="retpipe"/>
+          <path class="pipe" d="M725 178 V150 H840 V480 H880"/>
+          <path class="pipe" d="M372 150 V200 H440 V232"/>
+          <path class="pipe thin" d="M495 120 V232"/>
+          <path class="pipe thin" d="M520 248 H555 V505"/>
+          <!-- pool -->
+          <rect id="pw" class="water" x="40" y="120" width="320" height="240"/>
+          <path class="wall" d="M40 110 V360 H360 V120"/>
+          <rect x="360" y="120" width="25" height="30" class="equip"/>
+          <rect id="gw" x="361" y="132" width="23" height="17" fill="var(--water)" opacity=".6"/>
+          <rect id="film" x="352" y="115" width="20" height="6" fill="var(--water)" opacity=".7"/>
+          <g id="nozg">
+            <line class="dashline" x1="40" x2="360" y1="0" y2="0"/>
+            <text id="noztxt" class="lbl red" x="200" y="18" text-anchor="middle"></text>
+            <circle cx="44" cy="0" r="6" fill="var(--fg)"/>
+            <text class="lbl sm" x="56" y="-8">dönüş nozulu</text>
+          </g>
+          <text class="lbl" x="200" y="100" text-anchor="middle">HAVUZ</text>
+          <text id="lvl" class="lbl mono" x="352" y="100" text-anchor="end"></text>
+          <rect x="192" y="352" width="16" height="8" fill="var(--fg)"/>
+          <text class="lbl sm" x="214" y="378">dip emiş</text>
+          <text class="lbl sm" x="388" y="112">taşma oluğu</text>
+          <!-- balance tank -->
+          <rect id="tw" x="410" y="300" width="110" height="100" fill="var(--water)" opacity=".55"/>
+          <rect x="410" y="232" width="110" height="168" class="equip" fill-opacity="0"/>
+          <text class="lbl" x="465" y="222" text-anchor="middle">DENGE TANKI</text>
+          <text class="lbl sm" x="502" y="132">şebeke dolumu</text>
+          <text class="lbl sm" x="562" y="500">taşma → kanal</text>
+          <!-- pump -->
+          <g class="pumpg" id="pumpg" tabindex="0" role="button" aria-label="Pompayı aç veya kapat">
+            <circle cx="600" cy="370" r="22" class="equip"/>
+            <path d="M590 360 L612 370 L590 380 Z" fill="var(--fg)"/>
+          </g>
+          <text class="lbl" x="600" y="410" text-anchor="middle">POMPA</text>
+          <text id="pumpst" class="lbl mono" x="600" y="426" text-anchor="middle"></text>
+          <!-- filter + multiport -->
+          <rect x="685" y="222" width="80" height="180" rx="30" class="equip"/>
+          <rect x="690" y="330" width="70" height="66" rx="20" fill="var(--warn)" opacity=".25"/>
+          <text class="lbl" x="725" y="300" text-anchor="middle">KUM</text>
+          <text class="lbl" x="725" y="316" text-anchor="middle">FİLTRESİ</text>
+          <circle cx="725" cy="200" r="22" class="equip"/>
+          <text id="mptxt" class="lbl mono" x="725" y="204" text-anchor="middle" font-size="9.5"></text>
+          <circle id="leakring" cx="725" cy="200" r="30" fill="none" stroke="var(--leak)" stroke-width="2.5" stroke-dasharray="4 4"/>
+          <text class="lbl sm" x="676" y="176" text-anchor="end">altı yollu vana</text>
+          <text class="lbl sm" x="848" y="140">ATIK</text>
+          <text class="lbl sm" x="878" y="515" text-anchor="end">kanal</text>
+          <!-- clickable valves -->
+          <g class="vlv" data-v="drain" tabindex="0" role="button" aria-label="Dip emiş vanası" transform="translate(200 412)"><path d="M-10 -12 L10 -12 L-10 12 L10 12 Z"/><text class="lbl sm" x="-16" y="4" text-anchor="end">dip emiş vanası</text></g>
+          <g class="vlv" data-v="tank" tabindex="0" role="button" aria-label="Denge tankı emiş vanası" transform="translate(470 420)"><path d="M-9 -10 L9 -10 L-9 10 L9 10 Z"/><text class="lbl sm" x="-14" y="4" text-anchor="end">tank vanası</text></g>
+          <g class="vlv" data-v="ret" tabindex="0" role="button" aria-label="Dönüş hattı vanası" transform="translate(790 400)"><path d="M-10 -12 L10 -12 L-10 12 L10 12 Z"/><text class="lbl sm" x="-16" y="-2" text-anchor="end">dönüş</text><text class="lbl sm" x="-16" y="12" text-anchor="end">vanası</text></g>
+          <g class="vlv" data-v="waste" tabindex="0" role="button" aria-label="Atık hattı vanası" transform="translate(840 330)"><path d="M-10 -12 L10 -12 L-10 12 L10 12 Z"/><text class="lbl sm" x="16" y="-2">atık</text><text class="lbl sm" x="16" y="12">vanası</text></g>
+          <!-- crack -->
+          <g id="crack">
+            <path d="M292 460 L300 468 L294 474 L304 482" fill="none" stroke="var(--leak)" stroke-width="3"/>
+            <circle cx="300" cy="494" r="3" fill="var(--leak)"/><circle cx="306" cy="506" r="2.5" fill="var(--leak)"/>
+            <text class="lbl red" x="316" y="500">çatlak</text>
+          </g>
+          <!-- flows -->
+          <path id="f-drain" class="flow" d="M200 360 V440 H470"/>
+          <path id="f-tank" class="flow" d="M470 400 V440"/>
+          <path id="f-suction" class="flow" d="M470 440 H600 V392"/>
+          <path id="f-pressure" class="flow" d="M622 370 H650 V200 H703"/>
+          <path id="f-ret" class="flow" d="M747 200 H790 V470 H20 V168 H40"/>
+          <path id="f-waste" class="flow leak" d="M725 178 V150 H840 V480 H880"/>
+          <path id="f-gutter" class="flow" d="M372 150 V200 H440 V232"/>
+          <path id="f-crack" class="flow leak" d="M40 168 H20 V470 H296"/>
+          <path id="f-makeup" class="flow" d="M495 120 V232"/>
+          <path id="f-tover" class="flow leak" d="M520 248 H555 V505"/>
+        </svg>
+      </div>
+      <div class="hint">Şemada pompaya ve dört vanaya tıklayabilirsiniz. İçi dolu kırmızı vana kapalıdır.</div>
+    </section>
+
+    <aside class="card panel" aria-label="Kumanda paneli">
+      <div class="sec">
+        <h3>Simülasyon</h3>
+        <div class="row">
+          <button class="btn pri" id="run" type="button">❚❚ Duraklat</button>
+          <button class="btn" data-speed="60" type="button">1 dk/sn</button>
+          <button class="btn" data-speed="600" type="button">10 dk/sn</button>
+          <button class="btn" data-speed="1800" type="button">30 dk/sn</button>
+        </div>
+      </div>
+      <div class="sec">
+        <h3>Pompa</h3>
+        <button class="btn" id="pumpbtn" type="button"></button>
+      </div>
+      <div class="sec">
+        <h3>Altı yollu vana</h3>
+        <div class="dial" id="dial"></div>
+        <p class="note">Konum yalnızca pompa dururken değişir.</p>
+      </div>
+      <div class="sec">
+        <h3>Hat vanaları</h3>
+        <div class="vgrid" id="vgrid"></div>
+        <label class="chk"><input type="checkbox" id="makeup"> Otomatik su tamamlama</label>
+      </div>
+      <div class="sec" id="faultsec">
+        <h3>Arıza ayarları</h3>
+        <div class="sl"><label for="sA">Conta kaçağı · dönüş ↔ atık</label><output id="oA"></output><input id="sA" type="range" min="0" max="100" step="5"></div>
+        <div class="sl"><label for="sB">Conta kaçağı · pompa ↔ atık</label><output id="oB"></output><input id="sB" type="range" min="0" max="100" step="5"></div>
+        <div class="sl"><label for="sC">Dönüş borusunda çatlak</label><output id="oC"></output><input id="sC" type="range" min="0" max="100" step="5"></div>
+      </div>
+      <div class="sec" id="gamesec" hidden>
+        <h3>Usta modu · teşhis</h3>
+        <p class="note">Arıza gizli. Testleri yapın, sonra teşhisinizi seçin.</p>
+        <div class="row" id="guesses"></div>
+        <div id="reveal" class="reveal" hidden></div>
+      </div>
+      <div class="sec">
+        <div class="sl blue"><label for="noz">Nozulun taşma ağzından derinliği</label><output id="oN"></output><input id="noz" type="range" min="15" max="60" step="1"></div>
+        <label class="chk"><input type="checkbox" id="game"> Usta modu: arızayı gizle</label>
+        <button class="btn" id="resetall" type="button">Her şeyi başa al</button>
+      </div>
+    </aside>
+  </div>
+
+  <div id="toast" class="toast" role="status" hidden></div>
+
+  <section class="card gauges" aria-label="Göstergeler">
+    <div class="g"><div class="k">Saat</div><div class="v" id="g-clock"></div></div>
+    <div class="g"><div class="k">Pompa durdu</div><div class="v" id="g-stop"></div></div>
+    <div class="g"><div class="k">Havuz seviyesi</div><div class="v" id="g-pool"></div></div>
+    <div class="g"><div class="k">Denge tankı</div><div class="v" id="g-tank"></div></div>
+    <div class="g"><div class="k">Atık akışı</div><div class="v" id="g-waste"></div></div>
+    <div class="g"><div class="k">Toplam kayıp</div><div class="v" id="g-lost"></div></div>
+  </section>
+
+  <div class="lower">
+    <section class="card pad chart">
+      <h2>Havuz seviyesi · son 6 saat</h2>
+      <svg viewBox="0 0 480 230" id="chart" role="img" aria-label="Havuz seviyesinin zamana göre grafiği"></svg>
+      <p class="note">Simülasyonda kayıp pompa durur durmaz başlar. Sizin havuzunuzda 1–2 saat gecikmeyle başlıyor; basit bir conta kaçağı bu gecikmeyi açıklamaz ve modelde yoktur.</p>
+    </section>
+    <section class="card pad">
+      <div class="row" style="justify-content:space-between">
+        <h2>Test defteri</h2>
+        <div class="row">
+          <button class="btn pri" id="tstart" type="button">Yeni test başlat</button>
+          <button class="btn" id="tsave" type="button">Sonucu kaydet</button>
+        </div>
+      </div>
+      <p class="note" id="tinfo">Yeni test havuzu taşma seviyesine doldurur ve sayacı sıfırlar. Vanaları ayarlayın, pompayı durdurun, bekleyin, sonucu kaydedin.</p>
+      <div class="tbl"><table>
+        <thead><tr><th>#</th><th>Düzen</th><th>Süre</th><th>Düşüş</th><th>Sonuç</th></tr></thead>
+        <tbody id="tlog"></tbody>
+      </table></div>
+      <div id="tempty" class="empty">Henüz kayıtlı test yok.</div>
+    </section>
+  </div>
+
+  <section class="card pad">
+    <h2>Ne denemeli</h2>
+    <p class="note" style="color:var(--fg)">1. Pompa çalışırken FILTER konumunda atık akışı sıfır olmalı. Değilse conta kaçırıyor. 2. Pompayı durdurun: dönüş tarafı conta kaçağında ve boru çatlağında kayıp nozul hizasında durur; pompa tarafı conta kaçağında havuz dibe kadar boşalır. 3. Atık vanasını kapatın: conta kaçağı durur, çatlak durmaz. 4. Dönüş vanasını kapatın: dönüş tarafı conta kaçağı durur, ama vanadan önceki çatlak durmaz. Model basitleştirilmiştir; akış miktarları gösterim amaçlıdır.</p>
+  </section>
+</div>
+
+<script>
+(function(){
+"use strict";
+const A_POOL=50, A_TANK=3, TANK_OVER=1.1, Q_PUMP=30/3600, C=1.57e-3, H_WASTE=2.0, POOL_D=1.5, WEIR=18.4, PX=160;
+const POS=[["FILTER","Filtre"],["BACKWASH","Ters yıkama"],["RINSE","Durulama"],["WASTE","Atık"],["RECIRCULATE","Devirdaim"],["CLOSED","Kapalı"]];
+const VNAMES={drain:"Dip emiş",tank:"Tank emiş",ret:"Dönüş",waste:"Atık"};
+const $=id=>document.getElementById(id);
+let S, running=true, speed=600, last=0, hist=[], marks=[], sampleAcc=0, test=null, logRows=[], game=null, toastT=0;
+function fresh(){return {L:0.006,G:0.25,hT:0.6,pump:true,pos:"FILTER",v:{drain:true,tank:true,ret:true,waste:true},
+  sA:60,sB:0,sC:0,noz:30,makeup:false,t:8*3600,tStop:null,lost:0,f:{},warn:""};}
+S=fresh();
+// ---------- physics ----------
+function step(dt){
+  const f={drain:0,tank:0,suction:0,pressure:0,ret:0,waste:0,gutter:0,makeup:0,crack:0,tover:0,over:0};
+  let warn="";
+  const sA=game?game.sA:S.sA/100, sB=game?game.sB:S.sB/100, sC=game?game.sC:S.sC/100;
+  const nz=S.noz/100, H=Math.max(0,S.L+H_WASTE);
+  const poolAboveNoz=S.L>-nz, poolAboveDrain=S.L>-POOL_D+0.02;
+  if(S.pump){
+    let dest=null;
+    if(S.pos==="FILTER"||S.pos==="RECIRCULATE") dest=S.v.ret?"ret":null;
+    else if(S.pos!=="CLOSED") dest=S.v.waste?"waste":null;
+    const srcT=S.v.tank&&S.hT>0.05, srcD=S.v.drain&&poolAboveDrain;
+    if(!dest) warn="Pompa kapalı bir yola basıyor. Gerçek tesisatta pompa ve boru zarar görür.";
+    else if(!srcT&&!srcD) warn="Pompa emişte su bulamıyor, kuru çalışıyor.";
+    else{
+      const Q=Q_PUMP, qT=srcT&&srcD?Q/2:(srcT?Q:0);
+      f.tank=qT; f.drain=Q-qT; f.suction=Q; f.pressure=Q;
+      if(dest==="ret"){
+        f.ret=Q;
+        if(S.v.waste){const lk=Math.min(0.25*Math.max(sA,sB)*C*Math.sqrt(10),Q*0.5); f.ret-=lk; f.waste+=lk;}
+        if(sC>0){const q=Math.min(sC*C*Math.sqrt(8),f.ret); f.ret-=q; f.crack=q; f.crackPressured=true;}
+      } else f.waste=Q;
+    }
+  } else {
+    if(sA>0&&S.v.ret&&S.v.waste&&poolAboveNoz){const q=sA*C*Math.sqrt(H); f.ret-=q; f.waste+=q;}
+    if(sB>0&&S.v.waste){
+      const srcD=S.v.drain&&poolAboveDrain, srcT=S.v.tank&&S.hT>0.02;
+      if(srcD||srcT){const q=sB*C*Math.sqrt(H); const qT=srcD&&srcT?q/2:(srcT?q:0);
+        f.tank+=qT; f.drain+=q-qT; f.suction+=q; f.pressure+=q; f.waste+=q;}
+    }
+    if(sC>0&&poolAboveNoz){f.crack=sC*C*Math.sqrt(H);}
+  }
+  if(S.makeup&&S.hT<0.5) f.makeup=2/3600;
+  // pool
+  const poolOutCrack=(!S.pump)?f.crack:0;
+  S.L+=(f.ret-f.drain-poolOutCrack)*dt/A_POOL;
+  if(S.L>0){f.over=Math.min(WEIR*Math.pow(S.L,1.5),S.L*A_POOL/dt); S.L-=f.over*dt/A_POOL;}
+  if(S.L<-POOL_D) S.L=-POOL_D;
+  // gutter
+  S.G+=f.over*dt; f.gutter=Math.min(S.G/60,S.G/dt); S.G-=f.gutter*dt;
+  // tank
+  S.hT+=(f.gutter+f.makeup-f.tank)*dt/A_TANK;
+  if(S.hT>TANK_OVER){f.tover=(S.hT-TANK_OVER)*A_TANK/dt; S.hT=TANK_OVER;}
+  if(S.hT<0) S.hT=0;
+  S.lost+=(f.waste+f.crack+f.tover)*dt;
+  S.t+=dt; S.f=f; S.warn=warn;
+}
+// ---------- UI build ----------
+const dial=$("dial");
+POS.forEach(([k,tr])=>{const b=document.createElement("button");b.type="button";b.className="btn";b.dataset.pos=k;
+  b.innerHTML=tr+"<small>"+k+"</small>";b.onclick=()=>setPos(k);dial.appendChild(b);});
+const vgrid=$("vgrid");
+Object.keys(VNAMES).forEach(k=>{const b=document.createElement("button");b.type="button";b.className="btn";b.dataset.v=k;
+  b.innerHTML="<span>"+VNAMES[k]+"</span><span></span>";b.onclick=()=>toggleV(k);vgrid.appendChild(b);});
+document.querySelectorAll(".vlv").forEach(g=>{const k=g.dataset.v;g.addEventListener("click",()=>toggleV(k));
+  g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();toggleV(k);}});});
+$("pumpg").addEventListener("click",togglePump);
+$("pumpg").addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();togglePump();}});
+$("pumpbtn").onclick=togglePump;
+function toast(msg){const t=$("toast");t.textContent=msg;t.hidden=false;toastT=performance.now();}
+function togglePump(){S.pump=!S.pump;
+  if(!S.pump){S.tStop=S.t;marks.push({t:S.t,l:"durdu"});} else {S.tStop=null;marks.push({t:S.t,l:"çalıştı"});}
+  syncControls();}
+function setPos(k){if(S.pump){toast("Pompa çalışırken altı yollu vananın konumu değiştirilmez. Önce pompayı durdurun.");return;}
+  S.pos=k;syncControls();}
+function toggleV(k){S.v[k]=!S.v[k];syncControls();}
+["sA","sB","sC"].forEach(id=>{$(id).oninput=e=>{S[id]=+e.target.value;syncControls();};});
+$("noz").oninput=e=>{S.noz=+e.target.value;syncControls();};
+$("makeup").onchange=e=>{S.makeup=e.target.checked;};
+document.querySelectorAll("[data-speed]").forEach(b=>b.onclick=()=>{speed=+b.dataset.speed;syncControls();});
+$("run").onclick=()=>{running=!running;last=0;syncControls();if(running)requestAnimationFrame(loop);};
+$("resetall").onclick=()=>{const keepGame=$("game").checked;S=fresh();hist=[];marks=[];test=null;
+  if(keepGame) newGame(); syncControls(); render();};
+$("game").onchange=e=>{if(e.target.checked) newGame(); else {game=null;} syncControls();};
+const GUESS=[["A","Conta · dönüş ↔ atık"],["B","Conta · pompa ↔ atık"],["C","Dönüş borusu çatlağı"],["N","Kaçak yok"]];
+GUESS.forEach(([k,tx])=>{const b=document.createElement("button");b.type="button";b.className="btn";b.textContent=tx;b.onclick=()=>guess(k);$("guesses").appendChild(b);});
+function newGame(){const opts=[{k:"A",sA:.6,sB:0,sC:0},{k:"B",sA:0,sB:.45,sC:0},{k:"C",sA:0,sB:0,sC:.6},{k:"A",sA:.35,sB:0,sC:0},{k:"N",sA:0,sB:0,sC:0}];
+  game=opts[Math.floor(Math.random()*opts.length)];$("reveal").hidden=true;}
+const EXPL={A:"Vananın yıldız contası dönüş bölmesini atığa bağlıyordu. Atık vanası veya dönüş vanası kapanınca kayıp durur, kayıp nozul hizasında kendiliğinden biter.",
+  B:"Conta pompa tarafını atığa bağlıyordu. Pompa dururken su dip emişten pompa üzerinden atığa gider ve havuz nozul hizasında durmaz, dibe kadar iner.",
+  C:"Dönüş borusunda, makine dairesindeki dönüş vanasından önce çatlak vardı. Atık vanasını ya da dönüş vanasını kapatmak kaybı durdurmaz, kayıp nozul hizasında biter.",
+  N:"Bu turda kaçak yoktu. Pompa durduktan sonra seviye sabit kalır."};
+function guess(k){if(!game)return;const r=$("reveal");const ok=k===game.k;r.hidden=false;r.className="reveal "+(ok?"ok":"no");
+  r.textContent=(ok?"Doğru. ":"Yanlış. Doğrusu: "+GUESS.find(g=>g[0]===game.k)[1]+". ")+EXPL[game.k];}
+// tests
+$("tstart").onclick=()=>{S.L=0.006;S.hT=0.6;S.G=0.25;test={t:S.t,L:S.L,cfg:cfgText()};hist.push({t:S.t,d:0,gap:true});
+  $("tinfo").textContent="Test sürüyor. Başlangıç "+clock(S.t)+". Düzen: "+test.cfg+".";};
+$("tsave").onclick=()=>{if(!test){toast("Önce 'Yeni test başlat' ile havuzu doldurun.");return;}
+  const el=S.t-test.t, dd=(test.L-S.L)*100, rate=el>0?dd/(el/3600):0;
+  logRows.push({cfg:cfgText(),el,dd,loss:rate>0.5&&dd>0.3});renderLog();};
+function cfgText(){const closed=Object.keys(S.v).filter(k=>!S.v[k]).map(k=>VNAMES[k].toLowerCase());
+  return (S.pump?"pompa çalışıyor, ":"pompa kapalı, ")+S.pos+(closed.length?", kapalı: "+closed.join(", "):", tüm hatlar açık");}
+function renderLog(){const tb=$("tlog");tb.innerHTML="";$("tempty").hidden=logRows.length>0;
+  logRows.forEach((r,i)=>{const tr=document.createElement("tr");
+    tr.innerHTML='<td class="mono">'+(i+1)+"</td><td>"+r.cfg+'</td><td class="mono">'+dur(r.el)+'</td><td class="mono">'+fmt(r.dd,1)+' cm</td><td><span class="tag '+(r.loss?"bad":"good")+'">'+(r.loss?"kayıp var":"kayıp yok")+"</span></td>";
+    tb.appendChild(tr);});}
+// ---------- formatting ----------
+const fmt=(x,d)=>(Math.abs(x)<5*Math.pow(10,-d-1)?0:x).toFixed(d).replace(".",",");
+const clock=s=>{s=((s%86400)+86400)%86400;return String(Math.floor(s/3600)).padStart(2,"0")+":"+String(Math.floor(s%3600/60)).padStart(2,"0");};
+const dur=s=>Math.floor(s/3600)+" sa "+String(Math.floor(s%3600/60)).padStart(2,"0")+" dk";
+// ---------- render ----------
+function syncControls(){
+  $("pumpbtn").textContent=S.pump?"■ Pompayı durdur":"▶ Pompayı çalıştır";$("pumpbtn").className="btn "+(S.pump?"stop":"pri");
+  dial.querySelectorAll("button").forEach(b=>{b.setAttribute("aria-pressed",b.dataset.pos===S.pos?"true":"false");});
+  vgrid.querySelectorAll("button").forEach(b=>{const k=b.dataset.v;b.classList.toggle("closed",!S.v[k]);b.lastChild.textContent=S.v[k]?"AÇIK":"KAPALI";});
+  document.querySelectorAll(".vlv").forEach(g=>{const k=g.dataset.v;g.classList.toggle("closed",!S.v[k]);g.setAttribute("aria-pressed",S.v[k]?"false":"true");});
+  ["sA","sB","sC"].forEach(id=>{$(id).value=S[id];$("o"+id[1]).textContent=S[id]?S[id]+" %":"yok";});
+  $("noz").value=S.noz;$("oN").textContent=S.noz+" cm";$("makeup").checked=S.makeup;
+  document.querySelectorAll("[data-speed]").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.speed===speed?"true":"false"));
+  $("run").textContent=running?"❚❚ Duraklat":"▶ Devam";
+  $("faultsec").hidden=!!game;$("gamesec").hidden=!game;$("game").checked=!!game;
+  const nzY=120+S.noz/100*PX;$("nozg").setAttribute("transform","translate(0 "+nzY+")");
+  $("noztxt").textContent="−"+S.noz+" cm · nozul hizası";
+  render();
+}
+function setFlow(id,rate,leak,rev){const p=$(id);const on=rate>1e-6;p.classList.toggle("on",on);
+  if(leak!==undefined)p.classList.toggle("leak",leak);p.classList.toggle("rev",!!rev);
+  if(on)p.style.animationDuration=Math.max(.35,Math.min(3,0.7*Q_PUMP/rate))+"s";}
+function render(){
+  const f=S.f||{}, off=!S.pump;
+  const sA=game?game.sA:S.sA/100, sB=game?game.sB:S.sB/100, sC=game?game.sC:S.sC/100;
+  setFlow("f-drain",f.drain||0,off);setFlow("f-tank",f.tank||0,off);setFlow("f-suction",f.suction||0,off);
+  setFlow("f-pressure",f.pressure||0,off);
+  setFlow("f-ret",Math.abs(f.ret||0),(f.ret||0)<0,(f.ret||0)<0);
+  setFlow("f-waste",f.waste||0);setFlow("f-gutter",f.gutter||0);setFlow("f-makeup",f.makeup||0);setFlow("f-tover",f.tover||0);
+  setFlow("f-crack",off?(f.crack||0):0);
+  const y=120-S.L*PX;$("pw").setAttribute("y",y);$("pw").setAttribute("height",Math.max(0,360-y));
+  $("film").style.display=S.L>0.001?"":"none";$("gw").style.display=(S.G>0.02)?"":"none";
+  const ty=400-S.hT*140;$("tw").setAttribute("y",ty);$("tw").setAttribute("height",400-ty);
+  $("lvl").textContent=S.L<-0.001?"−"+fmt(-S.L*100,1)+" cm":"taşıyor";
+  $("pumpst").textContent=S.pump?"ÇALIŞIYOR":"DURDU";$("pumpst").style.fill=S.pump?"var(--ok)":"var(--muted)";
+  $("mptxt").textContent=S.pos;
+  $("leakring").style.display=(!game&&(sA>0||sB>0))?"":"none";
+  $("crack").style.display=(!game&&sC>0)?"":"none";
+  $("g-clock").textContent=clock(S.t);
+  $("g-stop").textContent=S.tStop===null?"—":dur(S.t-S.tStop);
+  const pl=$("g-pool");pl.textContent=S.L<-0.001?"−"+fmt(-S.L*100,1)+" cm":"taşma";pl.className="v"+(S.L<-0.02?" bad":"");
+  $("g-tank").textContent=fmt(S.hT*100,0)+" cm";
+  const w=$("g-waste");w.textContent=fmt((f.waste||0)*1000,2)+" L/s";w.className="v"+((f.waste||0)>1e-6?" bad":" good");
+  const lo=$("g-lost");lo.textContent=fmt(S.lost,1)+" m³";lo.className="v"+(S.lost>0.05?" bad":"");
+  if(S.warn){toast(S.warn);} else if(!$("toast").hidden&&performance.now()-toastT>4000){$("toast").hidden=true;}
+  drawChart();
+}
+// chart
+const CH={x0:46,x1:470,y0:16,y1:190,span:6*3600};
+function drawChart(){
+  const tEnd=Math.max(S.t,8*3600+CH.span), tStart=tEnd-CH.span;
+  const pts=hist.filter(p=>p.t>=tStart);
+  let maxD=35;pts.forEach(p=>{if(p.d+5>maxD)maxD=Math.ceil((p.d+5)/10)*10;});
+  const X=t=>CH.x0+(CH.x1-CH.x0)*(t-tStart)/CH.span, Y=d=>CH.y0+(CH.y1-CH.y0)*Math.max(0,d)/maxD;
+  let g="";const stepT=maxD>60?50:10;
+  for(let v=0;v<=maxD;v+=stepT){g+='<line x1="'+CH.x0+'" x2="'+CH.x1+'" y1="'+Y(v)+'" y2="'+Y(v)+'" stroke="var(--line)"/>'+
+    '<text x="'+(CH.x0-6)+'" y="'+(Y(v)+4)+'" text-anchor="end" class="lbl sm" style="font-family:var(--mono)">−'+v+'</text>';}
+  for(let h=0;h<=6;h++){const tt=tStart+h*3600;g+='<text x="'+X(tt)+'" y="'+(CH.y1+18)+'" text-anchor="middle" class="lbl sm" style="font-family:var(--mono)">'+clock(tt)+'</text>';}
+  g+='<line x1="'+CH.x0+'" x2="'+CH.x1+'" y1="'+Y(S.noz)+'" y2="'+Y(S.noz)+'" class="dashline"/><text x="'+(CH.x1-4)+'" y="'+(Y(S.noz)-5)+'" text-anchor="end" class="lbl red" style="font-size:11px">nozul hizası</text>';
+  marks.filter(m=>m.t>=tStart).forEach(m=>{g+='<line x1="'+X(m.t)+'" x2="'+X(m.t)+'" y1="'+CH.y0+'" y2="'+CH.y1+'" stroke="var(--muted)" stroke-dasharray="2 3"/><text x="'+(X(m.t)+3)+'" y="'+(CH.y0+10)+'" class="lbl sm">pompa '+m.l+'</text>';});
+  let seg=[];const segs=[];pts.forEach(p=>{if(p.gap&&seg.length){segs.push(seg);seg=[];}seg.push(X(p.t).toFixed(1)+","+Y(p.d).toFixed(1));});if(seg.length)segs.push(seg);
+  segs.forEach(s=>{g+='<polyline points="'+s.join(" ")+'" fill="none" stroke="var(--water)" stroke-width="2.5"/>';});
+  g+='<circle cx="'+X(S.t)+'" cy="'+Y(-S.L*100)+'" r="4.5" fill="'+(S.L<-0.02?"var(--leak)":"var(--water)")+'"/>';
+  g+='<text x="'+CH.x0+'" y="10" class="lbl sm">cm</text>';
+  $("chart").innerHTML=g;
+}
+// loop
+function loop(ts){if(!running)return;const realDt=last?Math.min(0.1,(ts-last)/1000):0;last=ts;
+  let simDt=realDt*speed;while(simDt>0){const d=Math.min(2,simDt);step(d);simDt-=d;
+    sampleAcc+=d;if(sampleAcc>=60){sampleAcc=0;hist.push({t:S.t,d:-S.L*100});if(hist.length>800)hist.shift();}}
+  render();requestAnimationFrame(loop);}
+for(let i=0;i<30;i++)step(2);
+hist.push({t:S.t,d:-S.L*100});
+syncControls();renderLog();requestAnimationFrame(loop);
+})();
+</script>
+
+</body></html>
