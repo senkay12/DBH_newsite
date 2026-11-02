@@ -1,0 +1,479 @@
+<title>Havuz Ustası</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0f1a22">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: telefon dikey tek ekran — üstte gösterge şeridi ve görev kartı, ortada şema, altta vana çipleri ve kumanda yuvası (kadran + pompa) */
+:root{
+  --bg:#e9eff2; --panel:#ffffff; --sunk:#f3f7f9; --fg:#13202a; --muted:#5a6b78; --line:#cbd5db;
+  --pipe:#a3b0ba; --water:#2a7fbf; --water-soft:#d3e7f5; --leak:#cf3f26; --leak-soft:#f9e1dc; --ok:#2c8659; --gold:#c98a12;
+  --display:"Barlow Condensed","Arial Narrow",sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0c151b; --panel:#15212a; --sunk:#101a21; --fg:#e4edf2; --muted:#93a6b3; --line:#2a3a46;
+  --pipe:#4c5e6c; --water:#4ea3e0; --water-soft:#183a54; --leak:#ff6a4d; --leak-soft:#4a1e16; --ok:#4cc38a; --gold:#f0b43c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c151b; --panel:#15212a; --sunk:#101a21; --fg:#e4edf2; --muted:#93a6b3; --line:#2a3a46;
+  --pipe:#4c5e6c; --water:#4ea3e0; --water-soft:#183a54; --leak:#ff6a4d; --leak-soft:#4a1e16; --ok:#4cc38a; --gold:#f0b43c; color-scheme:dark}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.45;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+button{font-family:inherit;touch-action:manipulation}
+.screen{max-width:520px;margin:0 auto;min-height:100%;padding-block:10px 12px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));box-sizing:border-box}
+.screen[hidden]{display:none!important}
+/* menu */
+.menu{display:grid;gap:14px;align-content:start}
+.brand{display:grid;gap:4px;padding-top:8px}
+.brand h1{font-family:var(--display);font-size:44px;line-height:1;margin:0}
+.brand p{margin:0;color:var(--muted)}
+.mlist{display:grid;gap:10px}
+.mcard{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:12px;align-items:center;text-align:left;
+  background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;color:var(--fg);cursor:pointer;min-height:64px}
+.mcard .num{font-family:var(--display);font-size:28px;color:var(--muted);text-align:center}
+.mcard b{display:block;font-size:16px}
+.mcard span.d{font-size:13px;color:var(--muted)}
+.stars{font-size:18px;letter-spacing:2px;color:var(--gold);white-space:nowrap}
+.stars .e{color:var(--line)}
+.fine{font-size:12.5px;color:var(--muted);margin:0}
+/* game */
+.game{display:grid;gap:8px;grid-template-rows:auto auto auto auto auto}
+.hud{display:grid;grid-template-columns:40px repeat(4,minmax(0,1fr));gap:6px;align-items:stretch}
+.hbtn{border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:10px;font-size:18px;cursor:pointer;min-height:44px}
+.hv{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:5px 8px;min-width:0}
+.hv .k{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.hv .v{font-family:var(--mono);font-size:15px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v.bad{color:var(--leak)}
+.mission{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:grid;gap:4px}
+.mission .t{font-family:var(--display);font-size:20px;line-height:1.1}
+.mission .o{font-size:14px}
+.mission .h{font-size:13px;color:var(--muted);background:var(--sunk);border-radius:8px;padding:6px 8px}
+.schem{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.schem svg{display:block;width:100%;height:auto}
+.chips{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.chip{border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:10px;min-height:48px;padding:4px;cursor:pointer;display:grid;line-height:1.15;font-size:12.5px;font-weight:600}
+.chip small{font-family:var(--mono);font-size:10.5px;font-weight:500;color:var(--ok)}
+.chip.closed{border-color:var(--leak);background:var(--leak-soft)}
+.chip.closed small{color:var(--leak)}
+.dock{display:grid;grid-template-columns:150px minmax(0,1fr);gap:10px;align-items:center}
+.dial svg{width:150px;height:150px;display:block}
+.sector{cursor:pointer}
+.sector path{fill:var(--panel);stroke:var(--line);stroke-width:1.5}
+.sector.on path{fill:var(--fg)}
+.sector text{font-family:var(--body);font-size:10.5px;font-weight:600;fill:var(--fg);pointer-events:none}
+.sector.on text{fill:var(--bg)}
+.side{display:grid;gap:8px}
+.pumpbtn{border:0;border-radius:14px;min-height:64px;font:700 20px var(--display);letter-spacing:.04em;color:#fff;background:var(--ok);cursor:pointer}
+.pumpbtn.on{background:var(--leak)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sbtn{border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:10px;min-height:44px;font-size:13px;font-weight:600;cursor:pointer}
+.sbtn.acc{background:var(--water);border-color:var(--water);color:#fff}
+.sbtn[hidden]{display:none}
+button:focus-visible,.sector:focus-visible,.vlv:focus-visible{outline:2px solid var(--water);outline-offset:2px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 10px);width:min(480px,calc(100% - 32px));
+  background:var(--fg);color:var(--bg);border-radius:12px;padding:10px 14px;font-size:14px;z-index:30;box-shadow:0 6px 24px rgba(0,0,0,.25)}
+.toast.bad{background:var(--leak);color:#fff}
+/* sheets */
+.veil{position:fixed;inset:0;background:rgba(8,14,18,.55);z-index:40;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--panel);color:var(--fg);width:100%;max-width:520px;border-radius:18px 18px 0 0;display:grid;gap:12px;max-height:88%;overflow-y:auto;
+  padding-top:18px;padding-bottom:calc(18px + env(safe-area-inset-bottom,0px));padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px));box-sizing:border-box}
+.sheet h2{font-family:var(--display);font-size:30px;margin:0;line-height:1.05}
+.sheet p{margin:0}
+.sheet .big{font-size:40px;letter-spacing:6px;color:var(--gold);text-align:center}
+.sheet .big .e{color:var(--line)}
+.stat{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.stat div{background:var(--sunk);border-radius:10px;padding:8px;text-align:center}
+.stat b{display:block;font-family:var(--mono);font-size:18px}
+.stat span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.lesson{background:var(--water-soft);border-radius:10px;padding:10px 12px;font-size:14px}
+.opts{display:grid;gap:8px}
+.opt{border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:12px;min-height:52px;padding:8px 14px;text-align:left;font-size:15px;font-weight:600;cursor:pointer}
+.pbtn{border:0;border-radius:12px;min-height:52px;font-size:16px;font-weight:600;cursor:pointer;background:var(--water);color:#fff}
+.gbtn{border:1px solid var(--line);border-radius:12px;min-height:52px;font-size:16px;font-weight:600;cursor:pointer;background:var(--panel);color:var(--fg)}
+.steps{margin:0;padding-left:20px;font-size:13px;display:grid;gap:2px}
+.steps li.done{color:var(--muted);text-decoration:line-through}
+.steps li.cur{font-weight:600}
+/* svg */
+.pipe{fill:none;stroke:var(--pipe);stroke-width:7;stroke-linecap:round;stroke-linejoin:round}
+.flow{fill:none;stroke:var(--water);stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:7 10;opacity:0;animation:dash 1s linear infinite}
+.flow.on{opacity:1}.flow.leak{stroke:var(--leak)}.flow.rev{animation-direction:reverse}
+@keyframes dash{to{stroke-dashoffset:-17}}
+@media (prefers-reduced-motion:reduce){.flow{animation:none!important}}
+.wall{fill:none;stroke:var(--fg);stroke-width:2.5}
+.equip{fill:var(--panel);stroke:var(--fg);stroke-width:1.8}
+.water{fill:var(--water);opacity:.55}
+.lbl{font-family:var(--body);font-size:11px;fill:var(--fg)}
+.lbl.sm{font-size:9.5px;fill:var(--muted)}
+.lbl.mono{font-family:var(--mono);font-size:9px}
+.lbl.red{fill:var(--leak);font-weight:600}
+.dashline{stroke:var(--leak);stroke-width:1.2;stroke-dasharray:4 4}
+.ground{fill:var(--line);opacity:.3}
+.vlv{cursor:pointer}
+.vlv .sym{fill:var(--panel);stroke:var(--fg);stroke-width:1.8}
+.vlv.closed .sym{fill:var(--leak);stroke:var(--leak)}
+.vlv .hit,.pumpg .hit{fill:transparent}
+.pumpg{cursor:pointer}
+.hitp{fill:none;stroke:transparent;stroke-width:24;pointer-events:none}
+.pick .hitp{pointer-events:stroke;cursor:pointer}
+.pick .hitp:active{stroke:var(--water-soft)}
+.pulse{animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.35}}
+</style>
+
+<!-- MENU -->
+<div class="screen menu" id="menu">
+  <div class="brand">
+    <div class="fine" style="font-family:var(--mono);letter-spacing:.08em">5 × 10 m TAŞMALI HAVUZ</div>
+    <h1>Havuz Ustası</h1>
+    <p>Makine dairesini işlet, kaçağı bul, suyu kurtar. Her görevde yıldız, kaybettiğin suya ve yaptığın hatalara göre verilir.</p>
+  </div>
+  <div class="mlist" id="mlist"></div>
+  <p class="fine">Oyun basitleştirilmiş bir modele dayanır. Akış miktarları gösterim amaçlıdır; gerçek havuzun teşhisi ancak yerinde yapılan ölçümle konur.</p>
+</div>
+
+<!-- GAME -->
+<div class="screen game" id="game" hidden>
+  <div class="hud">
+    <button class="hbtn" id="back" type="button" aria-label="Görevlere dön">‹</button>
+    <div class="hv"><div class="k">Süre</div><div class="v" id="h-time"></div></div>
+    <div class="hv"><div class="k">Havuz</div><div class="v" id="h-pool"></div></div>
+    <div class="hv"><div class="k">Kayıp</div><div class="v" id="h-lost"></div></div>
+    <div class="hv"><div class="k">Hata</div><div class="v" id="h-err"></div></div>
+  </div>
+  <div class="mission">
+    <div class="t" id="m-title"></div>
+    <div class="o" id="m-obj"></div>
+    <ol class="steps" id="m-steps" hidden></ol>
+    <div class="h" id="m-hint" hidden></div>
+  </div>
+  <div class="schem">
+    <svg viewBox="0 0 400 440" id="svg" role="img" aria-label="Havuz tesisat şeması">
+      <rect class="ground" x="0" y="60" width="400" height="380"/>
+      <path class="pipe" d="M106 190 V232 H150"/>
+      <path class="pipe" d="M266 200 V232 H150"/>
+      <path class="pipe" d="M150 232 V280"/>
+      <path class="pipe" d="M170 300 H230 V255 H273"/>
+      <path class="pipe" d="M307 255 H340 V410 H4 V86 H12"/>
+      <path class="pipe" d="M290 238 V222 H380 V428 H396"/>
+      <path class="pipe" d="M207 76 V96 H250 V110"/>
+      <rect id="pw" class="water" x="12" y="60" width="188" height="130"/>
+      <path class="wall" d="M12 50 V190 H200 V60"/>
+      <rect x="200" y="60" width="14" height="16" class="equip"/>
+      <rect id="gw" x="201" y="66" width="12" height="9" fill="var(--water)" opacity=".6"/>
+      <rect id="film" x="194" y="57" width="12" height="4" fill="var(--water)" opacity=".75"/>
+      <line class="dashline" x1="12" x2="200" y1="86" y2="86"/>
+      <circle cx="15" cy="86" r="4" fill="var(--fg)"/>
+      <text class="lbl red" x="106" y="100" text-anchor="middle">nozul hizası −30 cm</text>
+      <rect x="100" y="185" width="12" height="5" fill="var(--fg)"/>
+      <text class="lbl" x="106" y="42" text-anchor="middle">HAVUZ</text>
+      <text id="lvl" class="lbl mono" x="196" y="42" text-anchor="end"></text>
+      <rect id="tw" x="232" y="155" width="68" height="45" fill="var(--water)" opacity=".55"/>
+      <rect x="232" y="110" width="68" height="90" class="equip" fill-opacity="0"/>
+      <text class="lbl sm" x="266" y="104" text-anchor="middle">DENGE TANKI</text>
+      <g class="pumpg" id="pumpg" tabindex="0" role="button" aria-label="Pompa">
+        <circle class="hit" cx="150" cy="300" r="30"/>
+        <circle cx="150" cy="300" r="20" class="equip"/>
+        <path d="M141 291 L161 300 L141 309 Z" fill="var(--fg)"/>
+      </g>
+      <text class="lbl" x="150" y="336" text-anchor="middle">POMPA</text>
+      <text id="pumpst" class="lbl mono" x="150" y="348" text-anchor="middle"></text>
+      <rect x="266" y="272" width="48" height="110" rx="18" class="equip"/>
+      <rect x="270" y="340" width="40" height="38" rx="12" fill="var(--gold)" opacity=".22"/>
+      <text class="lbl sm" x="290" y="320" text-anchor="middle">FİLTRE</text>
+      <circle cx="290" cy="255" r="17" class="equip"/>
+      <text id="mptxt" class="lbl mono" x="290" y="258" text-anchor="middle" font-size="7.5"></text>
+      <text class="lbl sm" x="300" y="216">ATIK</text>
+      <text class="lbl sm" x="396" y="437" text-anchor="end">kanal</text>
+      <text class="lbl sm" x="346" y="286">dönüş</text>
+      <g id="crack">
+        <path d="M114 402 L120 408 L115 413 L123 419" fill="none" stroke="var(--leak)" stroke-width="2.5"/>
+        <circle cx="120" cy="428" r="2.5" fill="var(--leak)"/>
+      </g>
+      <g class="vlv" data-v="drain" tabindex="0" role="button" aria-label="Dip emiş vanası" transform="translate(106 212)"><circle class="hit" r="20"/><path class="sym" d="M-8 -9 L8 -9 L-8 9 L8 9 Z"/></g>
+      <g class="vlv" data-v="tank" tabindex="0" role="button" aria-label="Tank emiş vanası" transform="translate(266 216)"><circle class="hit" r="20"/><path class="sym" d="M-8 -9 L8 -9 L-8 9 L8 9 Z"/></g>
+      <g class="vlv" data-v="ret" tabindex="0" role="button" aria-label="Dönüş vanası" transform="translate(340 340)"><circle class="hit" r="20"/><path class="sym" d="M-8 -9 L8 -9 L-8 9 L8 9 Z"/></g>
+      <g class="vlv" data-v="waste" tabindex="0" role="button" aria-label="Atık vanası" transform="translate(380 330)"><circle class="hit" r="20"/><path class="sym" d="M-8 -9 L8 -9 L-8 9 L8 9 Z"/></g>
+      <path id="f-drain" class="flow" d="M106 190 V232 H150"/>
+      <path id="f-tank" class="flow" d="M266 200 V232 H150"/>
+      <path id="f-suction" class="flow" d="M150 232 V280"/>
+      <path id="f-pressure" class="flow" d="M170 300 H230 V255 H273"/>
+      <path id="f-ret" class="flow" d="M307 255 H340 V410 H4 V86 H12"/>
+      <path id="f-waste" class="flow leak" d="M290 238 V222 H380 V428 H396"/>
+      <path id="f-gutter" class="flow" d="M207 76 V96 H250 V110"/>
+      <path id="f-crack" class="flow leak" d="M12 86 H4 V410 H118"/>
+      <g id="hits">
+        <path class="hitp" data-p="waste" d="M290 238 V222 H380 V428 H396"/>
+        <path class="hitp" data-p="ret" d="M307 255 H340 V410 H4 V86 H12"/>
+        <path class="hitp" data-p="drain" d="M106 190 V232 H150 V280"/>
+        <path class="hitp" data-p="tank" d="M266 200 V232"/>
+        <path class="hitp" data-p="gutter" d="M207 76 V96 H250 V110"/>
+        <path class="hitp" data-p="pressure" d="M170 300 H230 V255 H273"/>
+      </g>
+    </svg>
+  </div>
+  <div class="chips" id="chips"></div>
+  <div class="dock">
+    <div class="dial"><svg viewBox="0 0 150 150" id="dial" aria-label="Altı yollu vana kadranı"></svg></div>
+    <div class="side">
+      <button class="pumpbtn" id="pumpbtn" type="button"></button>
+      <div class="row2">
+        <button class="sbtn" id="speed" type="button"></button>
+        <button class="sbtn" id="hintbtn" type="button">İpucu</button>
+      </div>
+      <button class="sbtn acc" id="diag" type="button" hidden>Teşhis koy</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" hidden></div>
+<div class="veil" id="veil" hidden><div class="sheet" id="sheet"></div></div>
+
+<script>
+(function(){
+"use strict";
+const A_POOL=50,A_TANK=3,TANK_OVER=1.1,Q_PUMP=30/3600,C=1.57e-3,H_WASTE=2.0,POOL_D=1.5,WEIR=18.4,NOZ=0.30,PX=130/1.5,TPX=75;
+const POS=[["FILTER","Filtre"],["BACKWASH","Ters yık."],["RINSE","Durula"],["WASTE","Atık"],["RECIRCULATE","Devird."],["CLOSED","Kapalı"]];
+const VN={drain:"Dip emiş",tank:"Tank emiş",ret:"Dönüş",waste:"Atık"};
+const $=id=>document.getElementById(id);
+let S=null,M=null,c=null,running=false,last=0,speedIx=1,toastTimer=0,screen="menu";
+const SPEEDS=[[60,"1 dk/sn"],[600,"10 dk/sn"],[3600,"1 sa/sn"]];
+function fresh(){return {L:0.006,G:0.25,hT:0.6,pump:true,pos:"FILTER",v:{drain:true,tank:true,ret:true,waste:true},sA:0,sB:0,sC:0,t:0,tStop:null,lost:0,f:{},warn:"",bad:false};}
+
+// ---------- physics ----------
+function step(dt){
+  const f={drain:0,tank:0,suction:0,pressure:0,ret:0,waste:0,gutter:0,crack:0,over:0};let warn="";
+  const H=Math.max(0,S.L+H_WASTE),aboveNoz=S.L>-NOZ,aboveDrain=S.L>-POOL_D+0.02;
+  if(S.pump){
+    let dest=null;
+    if(S.pos==="FILTER"||S.pos==="RECIRCULATE")dest=S.v.ret?"ret":null;
+    else if(S.pos!=="CLOSED")dest=S.v.waste?"waste":null;
+    const srcT=S.v.tank&&S.hT>0.05,srcD=S.v.drain&&aboveDrain;
+    if(!dest)warn="dead";else if(!srcT&&!srcD)warn="dry";
+    else{const Q=Q_PUMP,qT=srcT&&srcD?Q/2:(srcT?Q:0);f.tank=qT;f.drain=Q-qT;f.suction=Q;f.pressure=Q;
+      if(dest==="ret"){f.ret=Q;
+        if(S.v.waste){const lk=Math.min(0.25*Math.max(S.sA,S.sB)*C*Math.sqrt(10),Q*0.5);f.ret-=lk;f.waste+=lk;}
+        if(S.sC>0){const q=Math.min(S.sC*C*Math.sqrt(8),f.ret);f.ret-=q;f.crack=q;}
+      }else f.waste=Q;}
+  }else{
+    if(S.sA>0&&S.v.ret&&S.v.waste&&aboveNoz){const q=S.sA*C*Math.sqrt(H);f.ret-=q;f.waste+=q;}
+    if(S.sB>0&&S.v.waste){const sd=S.v.drain&&aboveDrain,st=S.v.tank&&S.hT>0.02;
+      if(sd||st){const q=S.sB*C*Math.sqrt(H),qT=sd&&st?q/2:(st?q:0);f.tank+=qT;f.drain+=q-qT;f.suction+=q;f.pressure+=q;f.waste+=q;}}
+    if(S.sC>0&&aboveNoz)f.crack=S.sC*C*Math.sqrt(H);
+  }
+  S.L+=(f.ret-f.drain-(S.pump?0:f.crack))*dt/A_POOL;
+  if(S.L>0){f.over=Math.min(WEIR*Math.pow(S.L,1.5),S.L*A_POOL/dt);S.L-=f.over*dt/A_POOL;}
+  if(S.L<-POOL_D)S.L=-POOL_D;
+  S.G+=f.over*dt;f.gutter=Math.min(S.G/60,S.G/dt);S.G-=f.gutter*dt;
+  S.hT+=(f.gutter-f.tank)*dt/A_TANK;
+  if(S.hT>TANK_OVER){S.lost+=(S.hT-TANK_OVER)*A_TANK;S.hT=TANK_OVER;}
+  if(S.hT<0)S.hT=0;
+  S.lost+=(f.waste+f.crack)*dt;S.t+=dt;S.f=f;S.warn=warn;
+}
+
+// ---------- missions ----------
+const FAULTS={A:{sA:.6},A2:{sA:.3},B:{sB:.45},C:{sC:.6},N:{}};
+const DIAG=[["A","Vana contası · dönüş ↔ atık"],["B","Vana contası · pompa ↔ atık"],["C","Dönüş borusunda çatlak"],["N","Kaçak yok"]];
+const EXPL={A:"Vananın yıldız contası dönüş bölmesini atığa bağlıyordu. Pompa durunca su nozuldan geri girip atığa gidiyor, kayıp nozul hizasında bitiyordu. Atık ya da dönüş vanasını kapatmak kaybı durdurur.",
+ B:"Conta pompa tarafını atığa bağlıyordu. Pompa durunca su dip emişten pompa üzerinden atığa gidiyor ve havuz nozulda durmadan dibe iniyordu.",
+ C:"Dönüş borusunda, makine dairesindeki dönüş vanasından önce çatlak vardı. Atık ya da dönüş vanasını kapatmak kaybı durdurmaz; kayıp nozul hizasında biter.",
+ N:"Bu turda kaçak yoktu. Pompa durduktan sonra seviye sabit kalıyordu."};
+const starsByMistakes=()=>c.mistakes===0?3:c.mistakes===1?2:1;
+const starsByLoss=(a,b)=>Math.max(1,(c.lost<a?3:c.lost<b?2:1)-Math.min(2,c.mistakes));
+const MISSIONS=[
+ {title:"Devreye al",d:"Kapalı tesisatı güvenle çalıştır",
+  brief:"Makine dairesinde bütün hat vanaları kapalı, altı yollu vana Kapalı konumda, pompa duruyor. Havuzu normal çalışmaya al.",
+  hint:"Önce dip emiş, tank ve dönüş vanalarını aç. Kadranı Filtre'ye çevir. Pompayı en son çalıştır.",
+  setup(){S.pump=false;S.pos="CLOSED";S.v={drain:false,tank:false,ret:false,waste:true};S.L=-0.01;S.G=0;},
+  obj(){return "Havuz taşma ağzından taşsın ve 5 dakika öyle kalsın."+(c.ok>0?" ("+Math.floor(c.ok/60)+"/5 dk)":"");},
+  check(dt){if(S.pump&&S.pos==="FILTER"&&S.L>0.001&&!S.warn)c.ok+=dt;else c.ok=0;if(c.ok>=300)win();},
+  stars:starsByMistakes,
+  lesson:"Pompa hep en son çalıştırılır ve vana konumu yalnızca pompa dururken değişir. Kapalı bir yola basan ya da emişte su bulamayan pompa zarar görür."},
+ {title:"Kaçağı bul",d:"Suyun gittiği boruyu göster",
+  brief:"Havuz normal çalışıyor ama geceleri su kaybediyor. Pompayı durdur, seviyenin düştüğünü gör, sonra suyun kaçtığı boruya dokun.",
+  hint:"Pompa durunca hangi boruda kırmızı akış başlıyor? Akışı havuzdan kanala kadar takip et; suyun sistemden çıktığı boru cevaptır.",
+  setup(){Object.assign(S,FAULTS.A);},
+  obj(){return c.phase?"Suyun sistemden çıktığı boruya dokun.":"Pompayı durdur ve seviyenin 2 cm düşmesini bekle.";},
+  check(){if(!c.phase&&!S.pump&&S.L<-0.02){c.phase=1;$("svg").classList.add("pick");toast("Seviye düşüyor. Şimdi suyun kaçtığı boruya dokun.");}},
+  pipe(p){if(!c.phase){toast("Önce pompayı durdur ve seviyenin düştüğünü gör.");return;}
+    if(p==="waste"&&S.f.waste>0){win();return;}
+    if(p==="ret"){toast("Su havuzdan bu borudan geri çıkıyor. Peki nereye gidiyor? Takip et.");return;}
+    mistake("Bu boruda akış yok.");},
+  stars:starsByMistakes,
+  lesson:"Pompa dururken dönüş hattı havuza açık kalır. Vananın contası kaçırırsa su nozuldan geri girer, vanadan atık hattına, oradan kanala gider."},
+ {title:"Kaybı durdur",d:"Tek hamleyle suyu kurtar",
+  brief:"Pompa bir süre önce durdu ve havuz su kaybediyor. Kaybı mümkün olduğunca az suyla durdur.",
+  hint:"Kayıp atık hattından gidiyor. Atık hattındaki vanayı kapatmak gerçek havuzda yapılacak ilk testtir.",
+  setup(){Object.assign(S,FAULTS.A);S.pump=false;S.L=-0.03;S.G=0;S.hT=0.75;S.tStop=0;},
+  obj(){return "Kaybı durdur ve havuzu 30 dakika sabit tut."+(c.ok>0?" ("+Math.floor(c.ok/60)+"/30 dk)":"");},
+  check(dt){const losing=S.f.waste>1e-6||S.f.crack>1e-6;
+    if(!losing&&(!S.v.waste||!S.v.ret)&&S.L>-0.29)c.ok+=dt;else c.ok=0;
+    if(c.ok>=1800)win();if(S.L<=-0.295)fail("Kayıp nozul hizasında kendiliğinden durdu. Havuz yaklaşık 15 ton su kaybetti.");},
+  stars:()=>starsByLoss(0.6,2),
+  lesson:"Atık vanası kapanınca kayıp duruyorsa suyun yolu atık hattıdır. Durmuyorsa vana tek başına sorumlu değildir; dönüş hattına bakılır."},
+ {title:"Ters yıkama",d:"Filtreyi doğru sırayla yıka",
+  brief:"Kum filtresi kirlendi. Ters yıkama ve durulamayı doğru sırayla yap, sistemi tekrar Filtre'ye al. Pompa çalışırken kadranı çevirmek hata sayılır.",
+  hint:"Her konum değişikliğinden önce pompayı durdur. Ters yıkamada su atığa gider, bu yüzden atık vanası açık olmalı.",
+  steps:["Pompayı durdur","Kadranı Ters yıkama'ya al","Pompayı çalıştır, 3 dk yıka","Pompayı durdur","Kadranı Durulama'ya al","Pompayı çalıştır, 1 dk durula","Pompayı durdur","Kadranı Filtre'ye al","Pompayı çalıştır"],
+  setup(){},
+  obj(){return "Adım "+(c.k+1)+"/9: "+this.steps[c.k]+(c.k===2||c.k===5?" ("+Math.floor(c.run)+" sn)":"");},
+  check(dt){const k=c.k;let ok=false;
+    if(k===0||k===3||k===6)ok=!S.pump;
+    else if(k===1)ok=!S.pump&&S.pos==="BACKWASH";
+    else if(k===4)ok=!S.pump&&S.pos==="RINSE";
+    else if(k===7)ok=!S.pump&&S.pos==="FILTER";
+    else if(k===2||k===5){const p=k===2?"BACKWASH":"RINSE";if(S.pump&&S.pos===p&&S.f.waste>0)c.run+=dt;ok=c.run>=(k===2?180:60);}
+    else if(k===8)ok=S.pump&&S.pos==="FILTER"&&S.f.ret>0;
+    if(ok){c.k++;c.run=0;renderSteps();if(c.k>=9)win();}},
+  stars:starsByMistakes,
+  lesson:"Ters yıkama ve durulamada su bilerek atığa atılır. Konumlar pompa dururken değişir; aksi halde vananın yıldız contası yerinden oynar ve kaçak başlar."},
+ {title:"Gizli arıza",d:"Test et, teşhis koy · bütçe 20 m³",budget:20,
+  brief:"Havuzda bir arıza var ama hangisi olduğu gizli. Pompayı, kadranı ve vanaları kullanarak test yap. Emin olunca Teşhis koy'a bas. 20 m³'ten fazla su kaybedersen görev biter.",
+  hint:"Pompayı durdur ve seviyenin nerede durduğuna bak. Sonra atık vanasını kapatıp kaybın sürüp sürmediğini izle. Gerekirse dönüş vanasını dene.",
+  pool:["A","B","C"],
+  setup(){c.fault=this.pool[Math.floor(Math.random()*this.pool.length)];Object.assign(S,FAULTS[c.fault]);},
+  obj(){return "Arızayı bul. Kalan bütçe: "+fmt(Math.max(0,this.budget-c.lost),1)+" m³";},
+  check(){if(c.lost>this.budget)fail("Su bütçesi aşıldı. Arıza: "+DIAG.find(d=>d[0]===c.fault.charAt(0))[1]+".");},
+  stars:()=>starsByLoss(5,10),
+  lesson:null},
+ {title:"Usta sınavı",d:"Daha sıkı bütçe · 8 m³",budget:8,
+  brief:"Arıza daha küçük olabilir, hiç olmayabilir de. Bütçe 8 m³. Gereksiz test yapma, ama acele teşhis de koyma.",
+  hint:"Kaçak yoksa pompa durduktan sonra seviye sabit kalır. Küçük kaçakta düşüş yavaştır; hızı 1 sa/sn'ye alıp bekle.",
+  pool:["A2","B","C","N","A"],
+  setup(){c.fault=this.pool[Math.floor(Math.random()*this.pool.length)];Object.assign(S,FAULTS[c.fault]);},
+  obj(){return "Arızayı bul. Kalan bütçe: "+fmt(Math.max(0,this.budget-c.lost),1)+" m³";},
+  check(){if(c.lost>this.budget)fail("Su bütçesi aşıldı. Arıza: "+DIAG.find(d=>d[0]===c.fault.charAt(0))[1]+".");},
+  stars:()=>starsByLoss(2,5),
+  lesson:null}
+];
+
+// ---------- storage ----------
+let BEST={};try{BEST=JSON.parse(localStorage.getItem("havuz-ustasi-stars")||"{}")||{};}catch(e){BEST={};}
+function saveBest(){try{localStorage.setItem("havuz-ustasi-stars",JSON.stringify(BEST));}catch(e){}}
+
+// ---------- helpers ----------
+const fmt=(x,d)=>(Math.abs(x)<5*Math.pow(10,-d-1)?0:x).toFixed(d).replace(".",",");
+const dur=s=>{const h=Math.floor(s/3600),m=Math.floor(s%3600/60);return h?h+"s "+String(m).padStart(2,"0")+"d":m+" dk";};
+const starStr=n=>"★".repeat(n)+'<span class="e">'+"★".repeat(3-n)+"</span>";
+function toast(msg,bad){const t=$("toast");t.textContent=msg;t.className="toast"+(bad?" bad":"");t.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>{t.hidden=true;},3200);}
+function mistake(msg){c.mistakes++;toast("Hata: "+msg,true);}
+
+// ---------- menu ----------
+function renderMenu(){const l=$("mlist");l.innerHTML="";
+  MISSIONS.forEach((m,i)=>{const b=document.createElement("button");b.type="button";b.className="mcard";
+    const st=BEST[i]||0;
+    b.innerHTML='<div class="num">'+(i+1)+'</div><div><b>'+m.title+'</b><span class="d">'+m.d+'</span></div><div class="stars">'+starStr(st)+'</div>';
+    b.onclick=()=>start(i);l.appendChild(b);});}
+
+// ---------- game setup ----------
+function start(i){M=MISSIONS[i];M.ix=i;S=fresh();c={mistakes:0,ok:0,phase:0,k:0,run:0,lost:0,lost0:0,t0:0,done:false};
+  M.setup();for(let n=0;n<20;n++)step(1);S.t=0;c.lost0=S.lost;
+  if(i===2&&S.tStop!==null)S.tStop=0;
+  $("svg").classList.remove("pick");$("m-hint").hidden=true;
+  $("diag").hidden=!M.budget;$("m-steps").hidden=!M.steps;
+  show("game");$("m-title").textContent=(i+1)+". "+M.title;renderSteps();syncControls();render();
+  openSheet('<h2>'+M.title+'</h2><p>'+M.brief+'</p><button class="pbtn" id="go" type="button">Başla</button>',()=>{$("go").onclick=()=>{closeSheet();resume();};});
+}
+function renderSteps(){if(!M||!M.steps)return;const ol=$("m-steps");ol.innerHTML="";
+  M.steps.forEach((s,j)=>{const li=document.createElement("li");li.textContent=s;if(j<c.k)li.className="done";else if(j===c.k)li.className="cur";ol.appendChild(li);});}
+function show(s){screen=s;$("menu").hidden=s!=="menu";$("game").hidden=s!=="game";window.scrollTo(0,0);}
+function resume(){running=true;last=0;requestAnimationFrame(loop);}
+function pause(){running=false;}
+$("back").onclick=()=>{pause();closeSheet();renderMenu();show("menu");};
+
+// ---------- controls ----------
+const chips=$("chips");
+Object.keys(VN).forEach(k=>{const b=document.createElement("button");b.type="button";b.className="chip";b.dataset.v=k;
+  b.innerHTML=VN[k]+"<small></small>";b.onclick=()=>toggleV(k);chips.appendChild(b);});
+document.querySelectorAll(".vlv").forEach(g=>{const k=g.dataset.v;g.addEventListener("click",()=>toggleV(k));
+  g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();toggleV(k);}});});
+$("pumpg").addEventListener("click",togglePump);
+$("pumpg").addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();togglePump();}});
+$("pumpbtn").onclick=togglePump;
+$("speed").onclick=()=>{speedIx=(speedIx+1)%SPEEDS.length;syncControls();};
+$("hintbtn").onclick=()=>{const h=$("m-hint");h.textContent=M.hint;h.hidden=!h.hidden;};
+document.querySelectorAll(".hitp").forEach(p=>p.addEventListener("click",()=>{if(M&&M.pipe&&!c.done)M.pipe(p.dataset.p);}));
+$("diag").onclick=()=>{pause();let h='<h2>Teşhisin ne?</h2><p class="fine">Kaybedilen su: '+fmt(c.lost,1)+' m³. Teşhis kesindir, geri alınmaz.</p><div class="opts">';
+  DIAG.forEach(d=>{h+='<button class="opt" type="button" data-k="'+d[0]+'">'+d[1]+'</button>';});
+  h+='</div><button class="gbtn" id="cancel" type="button">Teste devam et</button>';
+  openSheet(h,()=>{$("cancel").onclick=()=>{closeSheet();resume();};
+    document.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{const k=b.dataset.k,real=c.fault.charAt(0);closeSheet();
+      if(k===real)win(EXPL[real]);else fail("Yanlış teşhis. Doğrusu: "+DIAG.find(d=>d[0]===real)[1]+".",EXPL[real]);});});};
+function togglePump(){if(!S||c.done)return;S.pump=!S.pump;S.bad=false;S.tStop=S.pump?null:S.t;syncControls();}
+function toggleV(k){if(!S||c.done)return;S.v[k]=!S.v[k];syncControls();}
+function setPos(k){if(!S||c.done)return;if(S.pump){mistake("Pompa çalışırken kadran çevrilmez. Önce pompayı durdur.");return;}S.pos=k;syncControls();}
+
+// dial
+(function buildDial(){const d=$("dial"),cx=75,cy=75,R=72,r=30;let h="";
+  POS.forEach(([k,tr],i)=>{const a0=(-90-30+i*60)*Math.PI/180,a1=(-90+30+i*60)*Math.PI/180,am=(-90+i*60)*Math.PI/180;
+    const p=(rr,a)=>(cx+rr*Math.cos(a)).toFixed(1)+" "+(cy+rr*Math.sin(a)).toFixed(1);
+    h+='<g class="sector" data-pos="'+k+'" tabindex="0" role="button" aria-label="'+tr+'"><path d="M'+p(r,a0)+" L"+p(R,a0)+" A"+R+" "+R+" 0 0 1 "+p(R,a1)+" L"+p(r,a1)+" A"+r+" "+r+' 0 0 0 '+p(r,a0)+' Z"/>'+
+      '<text x="'+(cx+51*Math.cos(am)).toFixed(1)+'" y="'+(cy+51*Math.sin(am)+4).toFixed(1)+'" text-anchor="middle">'+tr+'</text></g>';});
+  h+='<circle cx="75" cy="75" r="27" fill="var(--sunk)" stroke="var(--fg)" stroke-width="1.8"/><line id="handle" x1="75" y1="75" x2="75" y2="52" stroke="var(--fg)" stroke-width="6" stroke-linecap="round"/><circle cx="75" cy="75" r="5" fill="var(--fg)"/>';
+  d.innerHTML=h;
+  d.querySelectorAll(".sector").forEach(g=>{g.addEventListener("click",()=>setPos(g.dataset.pos));
+    g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();setPos(g.dataset.pos);}});});})();
+
+function syncControls(){if(!S)return;
+  const pb=$("pumpbtn");pb.textContent=S.pump?"POMPAYI DURDUR":"POMPAYI ÇALIŞTIR";pb.classList.toggle("on",S.pump);
+  chips.querySelectorAll(".chip").forEach(b=>{const k=b.dataset.v;b.classList.toggle("closed",!S.v[k]);b.lastChild.textContent=S.v[k]?"AÇIK":"KAPALI";});
+  document.querySelectorAll(".vlv").forEach(g=>g.classList.toggle("closed",!S.v[g.dataset.v]));
+  const ix=POS.findIndex(p=>p[0]===S.pos);
+  $("dial").querySelectorAll(".sector").forEach(g=>g.classList.toggle("on",g.dataset.pos===S.pos));
+  $("handle").setAttribute("transform","rotate("+(ix*60)+" 75 75)");
+  $("speed").textContent="⏩ "+SPEEDS[speedIx][1];
+}
+function setFlow(id,rate,leak,rev){const p=$(id);const on=rate>1e-6;p.classList.toggle("on",on);
+  if(leak!==undefined)p.classList.toggle("leak",leak);p.classList.toggle("rev",!!rev);
+  if(on)p.style.animationDuration=Math.max(.35,Math.min(3,0.7*Q_PUMP/rate))+"s";}
+function render(){const f=S.f||{},off=!S.pump;
+  setFlow("f-drain",f.drain||0,off);setFlow("f-tank",f.tank||0,off);setFlow("f-suction",f.suction||0,off);setFlow("f-pressure",f.pressure||0,off);
+  setFlow("f-ret",Math.abs(f.ret||0),(f.ret||0)<0,(f.ret||0)<0);setFlow("f-waste",f.waste||0);setFlow("f-gutter",f.gutter||0);
+  setFlow("f-crack",off?(f.crack||0):0);
+  const y=60-S.L*PX;$("pw").setAttribute("y",y);$("pw").setAttribute("height",Math.max(0,190-y));
+  $("film").style.display=S.L>0.001?"":"none";$("gw").style.display=S.G>0.02?"":"none";
+  const ty=200-S.hT*TPX;$("tw").setAttribute("y",ty);$("tw").setAttribute("height",200-ty);
+  $("lvl").textContent=S.L<-0.001?"−"+fmt(-S.L*100,1)+" cm":"taşıyor";
+  $("pumpst").textContent=S.pump?"ÇALIŞIYOR":"DURDU";$("pumpst").style.fill=S.pump?"var(--ok)":"var(--muted)";
+  $("mptxt").textContent=S.pos;
+  $("crack").style.display=(M&&!M.budget&&S.sC>0)?"":"none";
+  $("h-time").textContent=dur(S.t);
+  const hp=$("h-pool");hp.textContent=S.L<-0.001?"−"+fmt(-S.L*100,1):"taşma";hp.className="v"+(S.L<-0.02?" bad":"");
+  const hl=$("h-lost");hl.textContent=fmt(c.lost,1)+" m³";hl.className="v"+(c.lost>0.3?" bad":"");
+  const he=$("h-err");he.textContent=String(c.mistakes);he.className="v"+(c.mistakes?" bad":"");
+  $("m-obj").textContent=M.obj();
+}
+
+// ---------- loop ----------
+function loop(ts){if(!running||screen!=="game")return;
+  const rdt=last?Math.min(0.1,(ts-last)/1000):0;last=ts;let sim=rdt*SPEEDS[speedIx][0];
+  while(sim>0&&!c.done){const d=Math.min(2,sim);step(d);sim-=d;c.lost=S.lost-c.lost0;
+    if(S.pump&&S.warn&&!S.bad){S.bad=true;mistake(S.warn==="dead"?"Pompa kapalı bir yola basıyor. Gerçekte pompa ve boru zarar görür.":"Pompa emişte su bulamıyor, kuru çalışıyor.");}
+    M.check(d);}
+  render();if(running&&!c.done)requestAnimationFrame(loop);}
+
+// ---------- results ----------
+function win(extra){if(c.done)return;c.done=true;running=false;const st=M.stars();
+  if(st>(BEST[M.ix]||0)){BEST[M.ix]=st;saveBest();}
+  result(true,st,extra||M.lesson);}
+function fail(msg,extra){if(c.done)return;c.done=true;running=false;result(false,0,(msg?msg+" ":"")+(extra||M.lesson||""));}
+function result(ok,st,text){render();
+  const next=M.ix+1<MISSIONS.length;
+  let h='<h2>'+(ok?"Görev tamam":"Görev başarısız")+'</h2><div class="big">'+starStr(st)+'</div>'+
+   '<div class="stat"><div><b>'+fmt(c.lost,1)+'</b><span>m³ kayıp</span></div><div><b>'+c.mistakes+'</b><span>hata</span></div><div><b>'+dur(S.t)+'</b><span>süre</span></div></div>'+
+   (text?'<div class="lesson">'+text+'</div>':"")+
+   '<button class="pbtn" id="again" type="button">Tekrar oyna</button>'+
+   (ok&&next?'<button class="gbtn" id="next" type="button">Sonraki görev</button>':"")+
+   '<button class="gbtn" id="tomenu" type="button">Görevler</button>';
+  openSheet(h,()=>{$("again").onclick=()=>{closeSheet();start(M.ix);};
+    if($("next"))$("next").onclick=()=>{closeSheet();start(M.ix+1);};
+    $("tomenu").onclick=()=>{closeSheet();renderMenu();show("menu");};});}
+function openSheet(html,bind){$("sheet").innerHTML=html;$("veil").hidden=false;if(bind)bind();}
+function closeSheet(){$("veil").hidden=true;}
+
+renderMenu();show("menu");
+})();
+</script>
