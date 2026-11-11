@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f1c3f">
+<title>Satış Asistanlı Sipariş — Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f4f7;--card:#fff;--ink:#141821;--muted:#6b7280;--line:#e6e8ee;--navy:#0f1c3f;--navy2:#1b2d5e;--acc:#e11d48;--ok:#059669;--okbg:#e7f7f0;--warn:#b45309;--warnbg:#fff4e0;--bad:#dc2626;--badbg:#fdecec;--ai1:#6d28d9;--ai2:#2563eb;--aibg:#f1edff;--r:14px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:#dfe3ea;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--ink);font-size:14px}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;padding:0}
+input,textarea{font:inherit;font-size:16px}
+#app{position:relative;max-width:440px;margin:0 auto;height:100vh;height:100dvh;display:flex;flex-direction:column;background:var(--bg);overflow:hidden}
+@media (min-width:600px){body{display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 30% 20%,#e9ecf3,#cfd5e0)}#app{height:min(100dvh,880px);width:420px;border-radius:28px;box-shadow:0 30px 80px rgba(15,28,63,.28),0 0 0 10px #10131a}}
+/* header */
+header{background:linear-gradient(160deg,var(--navy),var(--navy2));color:#fff;padding:calc(env(safe-area-inset-top) + 12px) 14px 12px;flex-shrink:0}
+.hd-top{display:flex;align-items:center;gap:10px}
+.cust{flex:1;text-align:left;min-width:0}
+.cn{font-weight:700;font-size:17px;display:flex;align-items:center;gap:6px}
+.cn .dd{opacity:.7;font-size:12px}
+.cs{font-size:12px;opacity:.72;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.timer{font-variant-numeric:tabular-nums;font-size:12px;background:rgba(255,255,255,.12);padding:5px 9px;border-radius:20px;display:flex;align-items:center;gap:5px}
+.timer:before{content:"";width:7px;height:7px;border-radius:50%;background:#34d399;box-shadow:0 0 0 3px rgba(52,211,153,.25)}
+.info{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.12);font-weight:700;font-size:13px}
+.hchips{display:flex;gap:6px;margin-top:10px;overflow-x:auto;scrollbar-width:none}
+.hchips::-webkit-scrollbar{display:none}
+.hc{font-size:11.5px;padding:4px 9px;border-radius:20px;background:rgba(255,255,255,.12);white-space:nowrap}
+.hc.bad{background:rgba(248,113,113,.25);color:#ffd5d5}
+.hc.ok{background:rgba(52,211,153,.2);color:#c9f7e3}
+.tg{margin-top:10px}
+.tgl{display:flex;justify-content:space-between;font-size:11.5px;opacity:.85;margin-bottom:5px}
+.tgl b{opacity:1;font-weight:700}
+.bar{height:6px;background:rgba(255,255,255,.15);border-radius:6px;overflow:hidden;display:flex}
+.bar i{display:block;height:100%;background:#34d399;transition:width .4s}
+.bar i.pj{background:repeating-linear-gradient(45deg,#a7f3d0,#a7f3d0 4px,#6ee7b7 4px,#6ee7b7 8px)}
+/* tabs */
+nav{display:flex;background:#fff;border-bottom:1px solid var(--line);flex-shrink:0}
+nav button{flex:1;padding:11px 4px;font-weight:600;font-size:13.5px;color:var(--muted);border-bottom:2.5px solid transparent;display:flex;align-items:center;justify-content:center;gap:6px}
+nav button.on{color:var(--navy);border-color:var(--acc)}
+.cnt{background:var(--acc);color:#fff;font-size:11px;border-radius:10px;padding:1px 6px;min-width:18px}
+.cnt.g{background:var(--ok)}
+main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:16px}
+/* products */
+.srch{padding:10px 12px 0;position:sticky;top:0;background:var(--bg);z-index:2}
+.srch input{width:100%;border:1px solid var(--line);border-radius:12px;padding:10px 12px 10px 36px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%239aa1ad' stroke-width='2'%3E%3Ccircle cx='7' cy='7' r='5'/%3E%3Cpath d='M11 11l4 4'/%3E%3C/svg%3E") 12px 50% no-repeat;outline:none}
+.srch input:focus{border-color:#a5b4fc}
+.cats{display:flex;gap:6px;overflow-x:auto;padding:10px 0 8px;scrollbar-width:none}
+.cats::-webkit-scrollbar{display:none}
+.cat{white-space:nowrap;padding:6px 11px;border-radius:20px;background:#fff;border:1px solid var(--line);font-size:12.5px;font-weight:500}
+.cat.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.cat.ai{border-color:#c4b5fd;color:var(--ai1)}
+.cat.ai.on{background:linear-gradient(120deg,var(--ai1),var(--ai2));color:#fff;border-color:transparent}
+.aistrip{margin:2px 12px 8px;padding:10px 12px;border-radius:12px;background:linear-gradient(120deg,#f3efff,#eaf1ff);border:1px solid #ddd3ff;display:flex;gap:10px;align-items:center;text-align:left;width:calc(100% - 24px)}
+.aistrip .sp{width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,var(--ai1),var(--ai2));color:#fff;display:grid;place-items:center;font-size:14px;flex-shrink:0}
+.aistrip .tx{font-size:12.5px;line-height:1.35;flex:1;min-width:0}
+.aistrip .tx b{display:block;font-size:11px;color:var(--ai1);letter-spacing:.02em;text-transform:uppercase}
+.plist{padding:0 12px;display:flex;flex-direction:column;gap:8px}
+.prow{background:#fff;border-radius:var(--r);padding:10px;display:flex;gap:10px;align-items:center;border:1px solid transparent;transition:border-color .3s,box-shadow .3s}
+.prow.in{border-color:#c7d2fe;box-shadow:0 1px 0 #e0e7ff}
+.prow.flash{animation:flash 1.6s ease}
+@keyframes flash{0%,60%{box-shadow:0 0 0 3px #a78bfa}100%{box-shadow:none}}
+.pimg{width:44px;height:58px;flex-shrink:0;display:grid;place-items:center;background:#f6f7f9;border-radius:10px}
+.pimg svg{width:34px;height:52px}
+.pinfo{flex:1;min-width:0}
+.pn{font-weight:600;font-size:13.5px;line-height:1.25}
+.pp{font-size:12px;color:var(--muted);margin-top:2px}
+.pp b{color:var(--ink);font-weight:700}
+.bdg{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.b{font-size:10.5px;font-weight:600;padding:2px 6px;border-radius:6px;background:#eef0f4;color:#475063}
+.b.c{background:#fff1f3;color:#be123c}
+.b.n{background:#fff7e6;color:#b45309}
+.b.h{background:#eef2ff;color:#3f4fb8}
+.b.l{background:var(--badbg);color:var(--bad)}
+.b.m{background:#ecfdf5;color:#047857}
+.b.ai{background:linear-gradient(120deg,var(--ai1),var(--ai2));color:#fff}
+.step{display:flex;align-items:center;gap:4px;flex-shrink:0}
+.sb{width:34px;height:34px;border-radius:10px;background:#eef0f4;font-size:19px;font-weight:600;display:grid;place-items:center;color:var(--navy)}
+.sb.p{background:var(--navy);color:#fff}
+.qi{width:40px;height:34px;border:1px solid var(--line);border-radius:9px;text-align:center;font-weight:700;font-size:15px;padding:0}
+.empty{padding:40px 24px;text-align:center;color:var(--muted)}
+.empty b{display:block;color:var(--ink);font-size:15px;margin-bottom:4px}
+/* cart */
+.sec{margin:12px 12px 0;background:#fff;border-radius:var(--r);padding:12px}
+.sec h3{margin:0 0 8px;font-size:13px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;display:flex;justify-content:space-between}
+.cl{display:flex;gap:10px;padding:10px 0;border-top:1px solid var(--line);align-items:center}
+.cl:first-of-type{border-top:0}
+.cl .pimg{width:36px;height:48px}
+.cl .pimg svg{width:28px;height:42px}
+.clm{flex:1;min-width:0}
+.clr{text-align:right;font-size:12px;color:var(--muted)}
+.clr b{display:block;color:var(--ink);font-size:14px}
+.disc{display:flex;align-items:center;gap:4px;margin-top:6px;font-size:11.5px;color:var(--muted)}
+.disc .sb{width:24px;height:24px;font-size:14px;border-radius:7px}
+.disc .v{min-width:38px;text-align:center;font-weight:700;color:var(--ink)}
+.free{background:var(--okbg)}
+.free .cl{border-color:#cdeee0}
+.free h3{color:var(--ok)}
+.sum .r{display:flex;justify-content:space-between;padding:5px 0;font-size:13.5px}
+.sum .r.d span:last-child{color:var(--ok);font-weight:600}
+.sum .r.t{border-top:1px solid var(--line);margin-top:6px;padding-top:10px;font-weight:800;font-size:16px}
+.sum .r.f{color:var(--ok);font-size:12.5px}
+.credit{display:flex;gap:10px;align-items:flex-start;font-size:12.5px;line-height:1.4}
+.credit.bad{background:var(--badbg);color:#7f1d1d}
+.credit.ok{background:var(--okbg);color:#065f46}
+textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:8px 10px;resize:none;font-size:14px}
+/* campaigns */
+.cp{margin:10px 12px 0;background:#fff;border-radius:var(--r);padding:12px;border-left:4px solid #cbd2dd}
+.cp.won{border-left-color:var(--ok)}
+.cp.near{border-left-color:var(--ai1)}
+.cpt{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.cpt b{font-size:14px}
+.st{font-size:11px;font-weight:700;padding:3px 7px;border-radius:6px;background:#eef0f4;color:#475063;white-space:nowrap}
+.st.won{background:var(--okbg);color:var(--ok)}
+.st.near{background:var(--aibg);color:var(--ai1)}
+.cpd{font-size:12.5px;color:var(--muted);margin:4px 0 8px;line-height:1.4}
+.pg{margin-top:6px}
+.pgl{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);margin-bottom:3px}
+.pgb{height:7px;background:#eef0f4;border-radius:6px;overflow:hidden}
+.pgb i{display:block;height:100%;background:linear-gradient(90deg,var(--ai2),var(--ai1));border-radius:6px;transition:width .4s}
+.cp.won .pgb i{background:var(--ok)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 12px;border-radius:10px;font-weight:600;font-size:13px;background:#eef0f4}
+.btn.pr{background:var(--navy);color:#fff}
+.btn.ai{background:linear-gradient(120deg,var(--ai1),var(--ai2));color:#fff}
+.btn.gh{background:transparent;color:var(--muted)}
+.btn.sm{padding:6px 10px;font-size:12px}
+.btn.full{width:100%;padding:13px}
+/* footer */
+footer{background:#fff;border-top:1px solid var(--line);padding:10px 12px calc(env(safe-area-inset-bottom) + 10px);display:flex;gap:10px;align-items:center;flex-shrink:0}
+.tot{flex:1;min-width:0}
+.tot small{display:block;font-size:11px;color:var(--muted)}
+.tot b{font-size:20px;font-weight:800;letter-spacing:-.01em}
+.go{background:var(--acc);color:#fff;font-weight:700;padding:13px 16px;border-radius:12px;font-size:14px}
+.go:disabled{background:#d1d5db}
+/* FAB */
+#fab{position:absolute;width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,var(--ai1),var(--ai2));color:#fff;box-shadow:0 10px 24px rgba(79,70,229,.45);z-index:30;touch-action:none;user-select:none;display:grid;place-items:center;transition:left .25s ease,top .05s}
+#fab.drag{transition:none;transform:scale(1.08)}
+#fab svg{width:28px;height:28px}
+#fab .bd{position:absolute;top:-3px;right:-3px;background:var(--acc);color:#fff;font-size:11px;font-weight:800;min-width:20px;height:20px;border-radius:10px;display:grid;place-items:center;border:2px solid #fff;padding:0 4px}
+#fab.pulse:after{content:"";position:absolute;inset:0;border-radius:50%;box-shadow:0 0 0 0 rgba(124,58,237,.6);animation:pulse 1.6s ease-out 3}
+@keyframes pulse{to{box-shadow:0 0 0 18px rgba(124,58,237,0)}}
+#nudge{position:absolute;z-index:29;width:min(270px,calc(100% - 96px));background:#fff;border-radius:16px;box-shadow:0 16px 40px rgba(15,28,63,.22);padding:11px 12px;border:1px solid #e4dcff;opacity:0;transform:scale(.85);pointer-events:none;transition:opacity .2s,transform .25s cubic-bezier(.3,1.4,.6,1)}
+#nudge.show{opacity:1;transform:scale(1);pointer-events:auto}
+#nudge.cel{border-color:#a7f3d0;background:linear-gradient(180deg,#f0fdf7,#fff)}
+#nudge.risk{border-color:#fecaca}
+.nh{display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:700;color:var(--ai1);letter-spacing:.03em;text-transform:uppercase}
+#nudge.cel .nh{color:var(--ok)}
+.nh button{font-size:18px;color:var(--muted);line-height:1;width:24px;height:24px}
+.nt{font-size:13.5px;font-weight:600;line-height:1.35;margin:4px 0 2px}
+.nb{font-size:12px;color:var(--muted);line-height:1.35}
+.na{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
+/* sheet */
+.ov{position:absolute;inset:0;background:rgba(10,15,30,.45);z-index:40;opacity:0;pointer-events:none;transition:opacity .2s}
+.ov.open{opacity:1;pointer-events:auto}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:41;background:#fff;border-radius:22px 22px 0 0;max-height:86%;display:flex;flex-direction:column;transform:translateY(105%);transition:transform .28s cubic-bezier(.2,.9,.3,1);padding-bottom:env(safe-area-inset-bottom)}
+.sheet.open{transform:none}
+.sheet:before{content:"";width:40px;height:4px;border-radius:4px;background:#d6d9e0;margin:8px auto 0;flex-shrink:0}
+.shh{display:flex;align-items:center;gap:10px;padding:10px 16px 10px}
+.shh b{font-size:16px}
+.shh small{display:block;color:var(--muted);font-size:12px;margin-top:1px}
+.shh .x{margin-left:auto;width:32px;height:32px;border-radius:50%;background:#f0f1f4;font-size:18px}
+.av{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,var(--ai1),var(--ai2));color:#fff;display:grid;place-items:center;flex-shrink:0}
+.av svg{width:22px;height:22px}
+.shb{overflow-y:auto;padding:4px 14px 16px;-webkit-overflow-scrolling:touch;flex:1}
+.seg{display:flex;margin:0 14px 8px;background:#f0f1f4;border-radius:11px;padding:3px}
+.seg button{flex:1;padding:8px;border-radius:9px;font-weight:600;font-size:13px;color:var(--muted)}
+.seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.kpis{display:flex;gap:8px;margin:0 14px 10px}
+.kpi{flex:1;background:var(--aibg);border-radius:11px;padding:8px 10px}
+.kpi small{display:block;font-size:10.5px;color:#6b5ca5;font-weight:600}
+.kpi b{font-size:15px}
+.sg{border:1px solid var(--line);border-radius:14px;padding:11px 12px;margin-bottom:9px;position:relative;overflow:hidden}
+.sg:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:#c4b5fd}
+.sg.p1:before{background:var(--ai1)}
+.sg.risk:before{background:var(--bad)}
+.sg.task:before{background:#f59e0b}
+.sgt{display:flex;gap:8px;align-items:flex-start}
+.sgt .ic{font-size:17px;line-height:1.2}
+.sgt .tt{flex:1;font-weight:600;font-size:13.5px;line-height:1.35}
+.imp{font-size:11.5px;font-weight:700;color:var(--ok);background:var(--okbg);padding:2px 7px;border-radius:7px;white-space:nowrap}
+.sgb{font-size:12.5px;color:#4b5363;line-height:1.45;margin:5px 0 0 25px}
+.why{font-size:11.5px;color:#6b5ca5;background:var(--aibg);border-radius:8px;padding:6px 8px;margin:7px 0 0 25px;display:none}
+.why.on{display:block}
+.sga{display:flex;gap:6px;flex-wrap:wrap;margin:9px 0 0 25px}
+.chat{display:flex;flex-direction:column;gap:8px;padding-bottom:6px}
+.msg{max-width:88%;padding:9px 11px;border-radius:14px;font-size:13px;line-height:1.45}
+.msg.me{align-self:flex-end;background:var(--navy);color:#fff;border-bottom-right-radius:4px}
+.msg.ai{align-self:flex-start;background:#f2f0fb;border-bottom-left-radius:4px}
+.msg ol,.msg ul{margin:5px 0 0;padding-left:18px}
+.msg .na{margin-top:8px}
+.typing span{display:inline-block;width:6px;height:6px;border-radius:50%;background:#8b7fd1;margin-right:3px;animation:tp 1s infinite}
+.typing span:nth-child(2){animation-delay:.15s}.typing span:nth-child(3){animation-delay:.3s}
+@keyframes tp{50%{opacity:.25}}
+.qchips{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px}
+.qc{font-size:12px;padding:6px 10px;border-radius:20px;border:1px solid #d9d0ff;color:var(--ai1);background:#faf8ff;font-weight:500}
+.cf{display:flex;gap:8px;padding:8px 14px 10px;border-top:1px solid var(--line)}
+.cf input{flex:1;border:1px solid var(--line);border-radius:12px;padding:9px 12px;outline:none}
+.note{font-size:11px;color:#9097a3;text-align:center;padding:6px 18px 4px;line-height:1.4}
+.crow{display:flex;gap:12px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:14px;margin-bottom:8px;width:100%;text-align:left}
+.crow.on{border-color:var(--navy);background:#f5f7fc}
+.crow .ci{width:40px;height:40px;border-radius:12px;background:#eef0f6;display:grid;place-items:center;font-size:19px}
+.crow small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.ml{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px dashed var(--line)}
+.ok-big{text-align:center;padding:8px 0 4px}
+.ok-big .ck{width:64px;height:64px;border-radius:50%;background:var(--okbg);color:var(--ok);display:grid;place-items:center;margin:0 auto 10px;font-size:32px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0}
+.stats div{background:#f5f6f9;border-radius:12px;padding:10px}
+.stats small{display:block;font-size:11px;color:var(--muted)}
+.stats b{font-size:16px}
+#toast{position:absolute;left:50%;bottom:86px;transform:translate(-50%,20px);background:#141821;color:#fff;padding:9px 14px;border-radius:12px;font-size:13px;z-index:50;opacity:0;transition:.25s;pointer-events:none;white-space:nowrap;max-width:90%;overflow:hidden;text-overflow:ellipsis}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="hd"></header>
+  <nav id="nav"></nav>
+  <main id="main"></main>
+  <footer id="ft"></footer>
+  <div id="fab" role="button" aria-label="Satış asistanı">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.6L18.5 9l-4.7 1.5L12 15l-1.8-4.5L5.5 9l4.7-1.4z" fill="currentColor" stroke="none"/><path d="M18.5 14.5l.8 2 2 .8-2 .7-.8 2-.7-2-2-.7 2-.8z" fill="currentColor" stroke="none"/><path d="M6 15.5l.6 1.4 1.4.6-1.4.6L6 19.5l-.6-1.4L4 17.5l1.4-.6z" fill="currentColor" stroke="none"/></svg>
+    <span class="bd" id="fabbd">0</span>
+  </div>
+  <div id="nudge"></div>
+  <div class="ov" id="ov" data-act="close"></div>
+  <div class="sheet" id="sheet"></div>
+  <div id="toast"></div>
+</div>
+
+<script>
+/* ================= DEMO VERİSİ ================= */
+const P=[
+{id:'CC330',n:'Coca-Cola 330 ml Kutu',pack:'24 × 330 ml',cat:'Gazlı',price:840,sh:'can',c1:'#d4202c',c2:'#ffffff',l:'330'},
+{id:'CC1L',n:'Coca-Cola 1 L PET',pack:'12 × 1 L',cat:'Gazlı',price:660,sh:'bottle',c1:'#3b1f14',c2:'#d4202c',l:'1L'},
+{id:'CC25',n:'Coca-Cola 2,5 L PET',pack:'6 × 2,5 L',cat:'Gazlı',price:540,sh:'bottle',c1:'#3b1f14',c2:'#d4202c',l:'2.5L'},
+{id:'CCZ330',n:'Coca-Cola Zero Sugar 330 ml',pack:'24 × 330 ml',cat:'Gazlı',price:840,sh:'can',c1:'#161616',c2:'#e3343f',l:'ZERO'},
+{id:'CCZ1L',n:'Coca-Cola Zero Sugar 1 L',pack:'12 × 1 L',cat:'Gazlı',price:660,sh:'bottle',c1:'#2a1a12',c2:'#161616',l:'1L'},
+{id:'FAN330',n:'Fanta Portakal 330 ml',pack:'24 × 330 ml',cat:'Gazlı',price:780,sh:'can',c1:'#f47b20',c2:'#1d4fa0',l:'330'},
+{id:'FAN1L',n:'Fanta Portakal 1 L',pack:'12 × 1 L',cat:'Gazlı',price:600,sh:'bottle',c1:'#f7941d',c2:'#1d4fa0',l:'1L'},
+{id:'SPR330',n:'Sprite 330 ml',pack:'24 × 330 ml',cat:'Gazlı',price:780,sh:'can',c1:'#1f9d55',c2:'#f5e663',l:'330'},
+{id:'SPR1L',n:'Sprite 1 L',pack:'12 × 1 L',cat:'Gazlı',price:600,sh:'bottle',c1:'#bfe8c9',c2:'#1f9d55',l:'1L'},
+{id:'CAPPY1L',n:'Cappy Vişne 1 L',pack:'12 × 1 L',cat:'Meyve Suyu',price:720,sh:'carton',c1:'#8e1b3a',c2:'#ffffff',l:'1L',promo:8,pt:'%8 iskonto'},
+{id:'CAPPY200',n:'Cappy Şeftali 200 ml',pack:'27 × 200 ml',cat:'Meyve Suyu',price:540,sh:'carton',c1:'#f6a04d',c2:'#ffffff',l:'200',promo:8,pt:'%8 iskonto'},
+{id:'FUSE330',n:'Fuse Tea Şeftali 330 ml',pack:'24 × 330 ml',cat:'Çay',price:720,sh:'can',c1:'#f2b33d',c2:'#7a3e0b',l:'330'},
+{id:'FUSEMANGO',n:'Fuse Tea Mango 330 ml',pack:'24 × 330 ml',cat:'Çay',price:720,sh:'can',c1:'#ff8a00',c2:'#ffffff',l:'YENİ',promo:15,pt:'Lansman %15',isNew:1},
+{id:'POW500',n:'Powerade Mavi 500 ml',pack:'12 × 500 ml',cat:'Enerji & Spor',price:480,sh:'bottle',c1:'#cfe4fb',c2:'#1c6fd1',l:'500'},
+{id:'MON500',n:'Monster Energy 500 ml',pack:'12 × 500 ml',cat:'Enerji & Spor',price:1140,sh:'can',c1:'#111111',c2:'#7ed321',l:'500'},
+{id:'SCH250',n:'Schweppes Tonik 250 ml',pack:'24 × 250 ml',cat:'Su & Mikser',price:900,sh:'can',c1:'#f3e9c6',c2:'#a8780a',l:'250'},
+{id:'DAMLA05',n:'Damla Su 0,5 L',pack:'24 × 0,5 L',cat:'Su & Mikser',price:216,sh:'bottle',c1:'#dff1fc',c2:'#2b8bd6',l:'0.5'}
+];
+const PM=Object.fromEntries(P.map(p=>[p.id,p]));
+const CATS=['Gazlı','Meyve Suyu','Çay','Enerji & Spor','Su & Mikser'];
+const TIERS=[[7500,2],[15000,4],[30000,6],[60000,8]];
+const MIX_NEED=4, MIX_PCT=1.5, MAX_MANUAL=5;
+const CAMPTAG={CC330:'Kombo',FAN330:'Kombo',SPR330:'Kombo',CCZ330:'Zero 3+1',CCZ1L:'Zero 3+1',MON500:'5+1'};
+
+const CUST0={
+ yildiz:{name:'Yıldız Market',area:'Muratpaşa',channel:'Bakkal',ico:'🏪',chDisc:2,limit:25000,balance:18500,overdue:3200,cooler:40,lastVisit:'7 gün önce',lastOrder:12840,
+  hist:{CC330:{avg:3,last:1},CC1L:{avg:6,last:1},CC25:{avg:4,last:1},FAN330:{avg:4,last:1},FAN1L:{avg:3,last:5},SPR1L:{avg:2,last:2},SPR330:{avg:1,last:3},CAPPY1L:{avg:2,last:6},DAMLA05:{avg:5,last:1}},
+  msl:['CC330','CC1L','CCZ330','FAN1L','DAMLA05']},
+ sahil:{name:'Sahil Büfe',area:'Konyaaltı',channel:'Büfe',ico:'🏖️',chDisc:1,limit:25000,balance:2100,overdue:0,cooler:75,lastVisit:'3 gün önce',lastOrder:9420,
+  hist:{CC330:{avg:5,last:1},MON500:{avg:4,last:1},FUSE330:{avg:2,last:5},DAMLA05:{avg:10,last:1},SPR330:{avg:2,last:1},FAN330:{avg:2,last:2},CCZ330:{avg:2,last:1}},
+  msl:['CC330','CCZ330','DAMLA05','FUSE330']},
+ lara:{name:'Lara Gross Market',area:'Lara',channel:'Süpermarket',ico:'🛒',chDisc:4,limit:120000,balance:31000,overdue:0,cooler:60,lastVisit:'7 gün önce',lastOrder:48900,
+  hist:{CC1L:{avg:14,last:1},CC25:{avg:12,last:1},CCZ1L:{avg:6,last:1},CC330:{avg:10,last:1},FAN1L:{avg:8,last:1},SPR1L:{avg:6,last:1},CAPPY1L:{avg:6,last:2},CAPPY200:{avg:4,last:1},SCH250:{avg:3,last:6},DAMLA05:{avg:20,last:1},FUSE330:{avg:4,last:1},MON500:{avg:3,last:2}},
+  msl:['CC330','CC1L','CCZ330','FAN1L','DAMLA05','POW500']}
+};
+const CUST=JSON.parse(JSON.stringify(CUST0));
+
+/* ================= DURUM ================= */
+const S={cid:'yildiz',c:CUST.yildiz,cart:{},manual:{},tab:'products',filter:'Tümü',q:'',dismissed:new Set(),nudged:new Set(),
+ contrib:0,accepted:0,achieved:38400,target:60000,chat:[],aiTab:'sugg',visitStart:Date.now(),tasks:new Set(),sheet:null,welcome:true,
+ prevWon:{combo:0,zero:0,mon:0},prevTier:0,prevMix:0,orderNo:1042,note:''};
+let SUGG=[];
+const $=s=>document.querySelector(s);
+const fmt=n=>'₺'+Math.round(n).toLocaleString('tr-TR');
+const q=id=>S.cart[id]||0;
+const unitNet=id=>{const p=PM[id];return p.price*(1-(p.promo||0)/100)*(1-S.c.chDisc/100)};
+
+/* ================= ÜRÜN GÖRSELİ ================= */
+function img(p){
+ const {c1,c2,l}=p, F='font-family="Inter,sans-serif" font-weight="800" text-anchor="middle"';
+ if(p.sh==='can') return `<svg viewBox="0 0 40 60"><rect x="9" y="5" width="22" height="4" rx="2" fill="#b9bfc8"/><rect x="8" y="8" width="24" height="45" rx="4" fill="${c1}"/><path d="M8 33c4-5 8-5 12 0s8 5 12 0v6c-4 5-8 5-12 0s-8-5-12 0z" fill="${c2}" opacity=".85"/><rect x="9" y="52" width="22" height="3" rx="1.5" fill="#b9bfc8"/><text x="20" y="25" font-size="${l.length>3?5.5:7}" ${F} fill="${c2}">${l}</text><rect x="11" y="10" width="3" height="40" rx="1.5" fill="#fff" opacity=".18"/></svg>`;
+ if(p.sh==='bottle') return `<svg viewBox="0 0 40 60"><rect x="16" y="2" width="8" height="5" rx="1.5" fill="${c2}"/><path d="M16.5 7h7v5c0 3 6.5 5 6.5 11v29a4 4 0 0 1-4 4H14a4 4 0 0 1-4-4V23c0-6 6.5-8 6.5-11z" fill="${c1}" stroke="rgba(0,0,0,.12)"/><rect x="10" y="30" width="20" height="12" fill="${c2}"/><text x="20" y="38.5" font-size="6.5" ${F} fill="#fff">${l}</text><rect x="12" y="20" width="2.5" height="32" rx="1.2" fill="#fff" opacity=".25"/></svg>`;
+ return `<svg viewBox="0 0 40 60"><rect x="24" y="3" width="2" height="10" rx="1" fill="#9aa1ad"/><path d="M10 15l4-6h12l4 6z" fill="${c1}" opacity=".75"/><rect x="10" y="15" width="20" height="40" rx="2" fill="${c1}"/><circle cx="20" cy="35" r="7.5" fill="${c2}"/><text x="20" y="37.5" font-size="6" ${F} fill="${c1}">${l}</text></svg>`;
+}
+
+/* ================= FİYAT & KAMPANYA MOTORU ================= */
+function calc(){
+ const c=S.c;let gross=0,lineDisc=0,after=0,qty=0;const lines=[];
+ for(const [id,n] of Object.entries(S.cart)){if(n<=0)continue;const p=PM[id],g=n*p.price,pct=(p.promo||0)+(S.manual[id]||0),d=g*pct/100;
+  lines.push({id,p,n,g,pct,d,net:g-d});gross+=g;lineDisc+=d;after+=g-d;qty+=n;}
+ const chDisc=after*c.chDisc/100, base=after-chDisc;
+ let tierPct=0,nextTier=null;for(const [t,pc] of TIERS){if(base>=t)tierPct=pc;else if(!nextTier)nextTier=[t,pc];}
+ const cats=new Set(lines.map(l=>l.p.cat)), mixPct=cats.size>=MIX_NEED?MIX_PCT:0;
+ const tierDisc=base*tierPct/100, mixDisc=base*mixPct/100, net=base-tierDisc-mixDisc;
+ const free={};const addF=(id,n)=>{if(n>0)free[id]=(free[id]||0)+n};
+ const combo=Math.min(Math.floor(q('CC330')/2),Math.floor(q('FAN330')/5)); addF('SPR330',combo*2);
+ const zero=Math.floor((q('CCZ330')+q('CCZ1L'))/3); addF('CCZ330',zero);
+ const mon=Math.floor(q('MON500')/5); addF('MON500',mon);
+ const freeVal=Object.entries(free).reduce((s,[id,n])=>s+n*PM[id].price,0);
+ return {lines,gross,lineDisc,chDisc,base,tierPct,nextTier,tierDisc,cats,mixPct,mixDisc,net,free,freeVal,qty,won:{combo,zero,mon},totalDisc:lineDisc+chDisc+tierDisc+mixDisc};
+}
+
+/* ================= ASİSTAN KURAL MOTORU ================= */
+function smartBasket(){
+ const H=S.c.hist,b={};
+ for(const [id,h] of Object.entries(H)) if(h.last<=3) b[id]=h.avg;
+ if((b.FAN330||0)>=3) b.FAN330=Math.max(b.FAN330,5);
+ if((b.FAN330||0)>=5 && (b.CC330||0)>=1) b.CC330=Math.max(b.CC330,2);
+ if((b.MON500||0)>=4) b.MON500=5;
+ const zt=(b.CCZ330||0)+(b.CCZ1L||0); if(zt%3===2) b[b.CCZ1L?'CCZ1L':'CCZ330']=(b[b.CCZ1L?'CCZ1L':'CCZ330']||0)+1;
+ return b;
+}
+function addAI(id,n,silent,base){S.cart[id]=q(id)+n;if(!base)S.contrib+=n*unitNet(id);S.accepted++;if(!silent)toast(`✓ ${n} koli ${PM[id].n} eklendi`);}
+function setAI(id,n){const d=n-q(id);if(d>0)addAI(id,d,true);toast(`✓ ${PM[id].n}: ${n} koli`);}
+function collect(){const c=S.c;toast(`✓ ${fmt(c.overdue)} tahsilat kaydedildi`);c.balance-=c.overdue;c.overdue=0;S.accepted++;}
+
+function buildSugg(k){
+ const c=S.c,H=c.hist,out=[];
+ const add=o=>{if(!S.dismissed.has(o.id))out.push(o)};
+ const show=id=>({l:'Ürünü göster',f:()=>showProduct(id),noRender:1});
+
+ if(!k.lines.length){
+  const b=smartBasket(),ids=Object.keys(b),val=ids.reduce((s,id)=>s+b[id]*unitNet(id),0);
+  add({id:'smart',pri:1,type:'plan',ic:'🧺',title:`Akıllı sepet hazır: ${ids.length} kalem · ${fmt(val)}`,
+   body:'Bu noktanın son 8 haftalık düzenli alımları + kampanya eşiklerine yuvarlama. Tek dokunuşla sepete al, sonra düzenle. (Rutin sipariş olduğu için ek satış katkısına sayılmaz.)',impact:val,
+   why:'Son 3 hafta içinde alınan ürünlerin haftalık ortalaması; Fanta 330 → 5 koli (Yaz Kombosu), Monster → 5 koli (5+1), Zero → 3’ün katı.',
+   acts:[{l:'Sepete uygula',f:()=>{for(const id of ids)addAI(id,b[id]-q(id)>0?b[id]-q(id):0,true,true);S.accepted-=ids.length-1;toast('✓ Akıllı sepet uygulandı');}}]});
+ }
+ // Yaz Kombosu
+ const q1=q('CC330'),q2=q('FAN330'),sets=Math.min(Math.floor(q1/2),Math.floor(q2/5)),nx=sets+1,n1=Math.max(0,2*nx-q1),n2=Math.max(0,5*nx-q2);
+ if(q1+q2>0 && n1+n2>0 && n1+n2<=4){
+  const parts=[n1?`${n1} koli Coca-Cola 330`:'',n2?`${n2} koli Fanta 330`:''].filter(Boolean).join(' + ');
+  add({id:'combo',pri:1,type:'camp',ic:'🎁',sku:n2?'FAN330':'CC330',title:`${parts} eklersen 2 koli Sprite 330 bedava`,
+   body:`Yaz Kombosu (2 Coca-Cola 330 + 5 Fanta 330 → 2 Sprite 330). Ek maliyet ${fmt(n1*unitNet('CC330')+n2*unitNet('FAN330'))}, bedava mal değeri ${fmt(1560)}.`,impact:1560,
+   why:'Sepetteki Coca-Cola 330 ve Fanta 330 adetleri bir sonraki kampanya setine 4 koli veya daha az uzaklıkta.',
+   acts:[{l:'Ekle ve kazan',f:()=>{if(n1)addAI('CC330',n1,true);if(n2)addAI('FAN330',n2,true);toast('✓ Kombo tamamlandı');}}]});
+ } else if(k.lines.length && q1+q2===0 && H.CC330 && H.FAN330){
+  add({id:'combo0',pri:2,type:'camp',ic:'🎁',sku:'FAN330',title:'Yaz Kombosu fırsatı: 2 Coca-Cola 330 + 5 Fanta 330',
+   body:`Bu nokta zaten haftada ort. ${H.CC330.avg} Coca-Cola 330 ve ${H.FAN330.avg} Fanta 330 alıyor. 2+5’e tamamlarsa 2 koli Sprite 330 bedava.`,impact:1560,
+   why:'Geçmiş alımlar kampanya eşiğine yakın, sepette ise henüz yok.',
+   acts:[{l:'2 + 5 ekle',f:()=>{addAI('CC330',2,true);addAI('FAN330',5,true);toast('✓ Kombo eklendi');}}]});
+ }
+ // havuz kampanyaları
+ const zt=q('CCZ330')+q('CCZ1L'),zr=3-zt%3;
+ if(zt>0&&zr<=2)add({id:'zero',pri:1,type:'camp',ic:'🎁',sku:'CCZ330',title:`${zr} koli daha Zero eklersen 1 koli Zero 330 bedava`,body:`Zero Şekersiz Tanıtım: 3 koliye 1 koli Zero 330 bedava (${fmt(840)} değer).`,impact:840,why:`Sepette ${zt} koli Zero var; bir sonraki eşik ${zt+zr}.`,acts:[{l:`+${zr} Zero 330`,f:()=>addAI('CCZ330',zr)}]});
+ const mt=q('MON500'),mr=5-mt%5;
+ if(mt>0&&mr<=2)add({id:'mon',pri:1,type:'camp',ic:'🎁',sku:'MON500',title:`${mr} koli daha Monster → 1 koli bedava`,body:`Monster 5+1 kampanyası. Bedava mal değeri ${fmt(1140)}.`,impact:1140,why:`Sepette ${mt} koli Monster; bir sonraki eşik ${mt+mr}.`,acts:[{l:`+${mr} Monster`,f:()=>addAI('MON500',mr)}]});
+ // hacim eşiği
+ if(k.base>0&&k.nextTier){const [T,pc]=k.nextTier,gap=T-k.base;
+  if(gap<=T*0.2){
+   let best=null;const cands=[...new Set([...Object.keys(H),...c.msl])];
+   for(const id of cands){const u=unitNet(id),n=Math.ceil(gap/u),lim=Math.max(4,Math.ceil((H[id]?.avg||2)*1.2));if(n>lim)continue;
+    const over=n*u-gap-(H[id]&&q(id)<H[id].avg?400:0);if(!best||over<best.over)best={id,n,over};}
+   if(best){const gain=(k.base+best.n*unitNet(best.id))*pc/100-k.base*k.tierPct/100;
+    add({id:'tier',pri:1,type:'camp',ic:'📈',sku:best.id,title:`${fmt(gap)} daha → hacim iskontosu %${pc}`,body:`En az fire ile: ${best.n} koli ${PM[best.id].n}. Tüm siparişe ≈ ${fmt(gain)} ek iskonto yansır.`,impact:gain,
+     why:`Kanal sonrası net ${fmt(k.base)}; bir sonraki kademe ${fmt(T)}. Aday ürünler bu noktanın geçmişi ve MSL listesinden, eşiği en az aşan seçildi.`,
+     acts:[{l:`+${best.n} koli ekle`,f:()=>addAI(best.id,best.n)}]});}
+  }}
+ // çeşit primi
+ if(k.cats.size===MIX_NEED-1){const miss=CATS.filter(x=>!k.cats.has(x));let pick=null;
+  for(const id of [...Object.keys(H),...c.msl,'DAMLA05','CAPPY200','FUSE330']){if(miss.includes(PM[id].cat)){pick=id;break;}}
+  if(pick)add({id:'mix',pri:2,type:'camp',ic:'🧩',sku:pick,title:`1 kategori daha → ek %${MIX_PCT} çeşit primi`,body:`Sepette ${k.cats.size} kategori var. 1 koli ${PM[pick].n} (${PM[pick].cat}) ile ≈ ${fmt(k.base*MIX_PCT/100)} ek iskonto.`,impact:k.base*MIX_PCT/100,why:`Eksik kategoriler: ${miss.join(', ')}.`,acts:[{l:'+1 koli ekle',f:()=>addAI(pick,1)}]});}
+ // kredi
+ const proj=c.balance+k.net;
+ if(k.net>0&&proj>c.limit){add({id:'credit',pri:0,type:'risk',ic:'⚠️',title:`Kredi limiti ${fmt(proj-c.limit)} aşılıyor`,
+  body:`Açık bakiye ${fmt(c.balance)} + sipariş ${fmt(k.net)} > limit ${fmt(c.limit)}. Sipariş bölge müdürü onayına düşer.${c.overdue?` Önce vadesi geçmiş ${fmt(c.overdue)} tahsil edilirse aşım ${proj-c.overdue>c.limit?fmt(proj-c.overdue-c.limit)+'’ye iner':'kalkar'}.`:' Peşin ödeme veya sipariş bölme öner.'}`,
+  why:'Risk kuralı: açık bakiye + sipariş neti > kredi limiti.',acts:c.overdue?[{l:`${fmt(c.overdue)} tahsil et`,f:collect}]:[]});}
+ else if(c.overdue>0)add({id:'overdue',pri:2,type:'risk',ic:'💳',title:`Vadesi geçmiş ${fmt(c.overdue)} bakiye`,body:'Sipariş öncesi tahsilat iste; limit rahatlar, sonraki siparişler onaya takılmaz.',why:'Cari hesapta vadesi geçmiş fatura var.',acts:[{l:'Tahsilat kaydet',f:collect}]});
+ // kaybedilen ürünler
+ for(const [id,h] of Object.entries(H)){
+  if(h.last>=4&&!q(id))add({id:'lapsed_'+id,pri:h.last>=5?1:2,type:'hist',ic:'⏳',sku:id,title:`${h.last} haftadır ${PM[id].n} almadı`,
+   body:`Önceden haftada ort. ${h.avg} koli alıyordu. Rafta rakip ürün yerleşmiş olabilir: raf kontrolü yap, ortalama kadar öner.`,impact:h.avg*unitNet(id),
+   why:`Son alım ${h.last} hafta önce; 8 haftalık ortalama ${h.avg} koli/hafta.`,acts:[{l:`${h.avg} koli ekle`,f:()=>addAI(id,h.avg)},show(id)]});
+  else if(h.last<4&&q(id)>0&&q(id)<h.avg*0.6)add({id:'under_'+id,pri:2,type:'hist',ic:'📉',sku:id,title:`${PM[id].n} ortalamanın altında: ${q(id)} / ${h.avg} koli`,
+   body:`Bu noktanın düzenli tüketimi ${h.avg} koli/hafta. Eksik sipariş hafta ortasında stoksuzluk (OOS) riski yaratır.`,impact:(h.avg-q(id))*unitNet(id),
+   why:'Sepetteki miktar 8 haftalık ortalamanın %60’ından az.',acts:[{l:`${h.avg} koliye tamamla`,f:()=>setAI(id,h.avg)}]});
+ }
+ // MSL
+ for(const id of c.msl)if(!H[id]&&!q(id))add({id:'msl_'+id,pri:2,type:'msl',ic:'📋',sku:id,title:`Zorunlu ürün eksik: ${PM[id].n}`,
+  body:`${c.channel} kanalı zorunlu ürün listesinde (MSL), bu noktada hiç alınmamış. Deneme için 1 koli öner.`,impact:unitNet(id),
+  why:'Kanal MSL listesi ile noktanın alım geçmişi karşılaştırıldı.',acts:[{l:'+1 koli',f:()=>addAI(id,1)},show(id)]});
+ // çapraz satış & yeni ürün
+ if(q('MON500')>0&&!q('POW500')&&!c.msl.includes('POW500'))add({id:'x_pow',pri:2,type:'cross',ic:'🔗',sku:'POW500',title:'Monster alan noktalarda Powerade de dönüyor',body:'Benzer büfelerin %62’si Monster ile birlikte Powerade alıyor (demo veri). Sahil/spor müşterisi için 1 koli deneme.',impact:unitNet('POW500'),why:'Sepet birliktelik analizi (aynı kanal, son 12 hafta).',acts:[{l:'+1 Powerade',f:()=>addAI('POW500',1)}]});
+ if(H.FUSE330&&!q('FUSEMANGO'))add({id:'x_mango',pri:2,type:'cross',ic:'✨',sku:'FUSEMANGO',title:'Yeni ürün: Fuse Tea Mango — %15 lansman',body:'Bu nokta Fuse Tea alıcısı. Yeni aroma için ilk 1 koli lansman iskontolu; dağıtım hedefine sayılır.',impact:unitNet('FUSEMANGO'),why:'Lansman hedef listesi: mevcut Fuse Tea alıcıları.',acts:[{l:'+1 koli Mango',f:()=>addAI('FUSEMANGO',1)},show('FUSEMANGO')]});
+ // saha görevi
+ if(c.cooler<50&&!S.tasks.has('cooler'))add({id:'cooler',pri:2,type:'task',ic:'🧊',sku:'CC330',title:`Soğutucu doluluğu %${c.cooler}`,body:'Soğutucuyu 330 ml kutularla doldur: görünürlük ve anlık tüketim. Doldurduktan sonra fotoğrafla kanıtla.',why:'Son ziyaret fotoğraf denetimi (demo veri).',
+  acts:[{l:'+2 Coca-Cola 330',f:()=>addAI('CC330',2)},{l:'Görev tamam',f:()=>{S.tasks.add('cooler');c.cooler=90;S.accepted++;toast('✓ Soğutucu görevi tamamlandı');}}]});
+ return out.sort((a,b)=>a.pri-b.pri||(b.impact||0)-(a.impact||0));
+}
+
+/* ================= RENDER ================= */
+function render(){
+ const k=calc();S.k=k;SUGG=buildSugg(k);
+ renderHeader(k);renderNav(k);
+ const m=$('#main'),st=m.scrollTop;m.innerHTML=S.tab==='products'?viewProducts(k):S.tab==='cart'?viewCart(k):viewCamps(k);m.scrollTop=st;
+ renderFooter(k);
+ $('#fabbd').textContent=SUGG.length;$('#fabbd').style.display=SUGG.length?'grid':'none';
+ if(S.sheet==='ai')renderAI();
+ afterRender(k);
+}
+function renderHeader(k){
+ const c=S.c,avail=c.limit-c.balance-k.net,proj=S.achieved+k.net;
+ $('#hd').innerHTML=`<div class="hd-top"><button class="cust" data-act="pickCust"><div class="cn">${c.name} <span class="dd">▼</span></div><div class="cs">${c.area} · ${c.channel} · Son ziyaret ${c.lastVisit}</div></button><div class="timer" id="timer">00:00</div><button class="info" data-act="about">i</button></div>
+ <div class="hchips"><span class="hc ${avail<0?'bad':'ok'}">Limit kalan ${fmt(avail)}</span>${c.overdue?`<span class="hc bad">Gecikmiş ${fmt(c.overdue)}</span>`:''}<span class="hc">Kanal isk. %${c.chDisc}</span><span class="hc">Soğutucu %${c.cooler}</span><span class="hc">Son sipariş ${fmt(c.lastOrder)}</span></div>
+ <div class="tg"><div class="tgl"><span>Günlük hedef</span><span><b>${fmt(proj)}</b> / ${fmt(S.target)}</span></div><div class="bar"><i style="width:${Math.min(100,S.achieved/S.target*100)}%"></i><i class="pj" style="width:${Math.max(0,Math.min(100-S.achieved/S.target*100,k.net/S.target*100))}%"></i></div></div>`;
+ tick();
+}
+function renderNav(k){
+ const won=k.won.combo+k.won.zero+k.won.mon+(k.tierPct?1:0)+(k.mixPct?1:0);
+ $('#nav').innerHTML=[['products','Ürünler',''],['cart','Sepet',k.lines.length?`<span class="cnt">${k.lines.length}</span>`:''],['camps','Kampanyalar',won?`<span class="cnt g">${won}</span>`:'']]
+  .map(([v,t,x])=>`<button data-act="tab" data-v="${v}" class="${S.tab===v?'on':''}">${t}${x}</button>`).join('');
+}
+function suggFor(id){return SUGG.find(s=>s.sku===id)}
+function prow(p){
+ const n=q(p.id),h=S.c.hist[p.id],sg=suggFor(p.id);let b='';
+ if(sg)b+=`<button class="b ai" data-act="openSug" data-sid="${sg.id}">✦ öneri</button>`;
+ if(p.isNew)b+=`<span class="b n">YENİ</span>`;
+ if(CAMPTAG[p.id])b+=`<span class="b c">${CAMPTAG[p.id]}</span>`;
+ if(p.pt)b+=`<span class="b c">${p.pt}</span>`;
+ if(h)b+=h.last>=4?`<span class="b l">${h.last} hf almadı</span>`:`<span class="b h">Ort. ${h.avg} koli/hf</span>`;
+ if(S.c.msl.includes(p.id))b+=`<span class="b m">MSL</span>`;
+ return `<div class="prow ${n?'in':''}" id="row-${p.id}"><div class="pimg">${img(p)}</div><div class="pinfo"><div class="pn">${p.n}</div><div class="pp">${p.pack} · <b>${fmt(p.price)}</b>/koli</div><div class="bdg">${b}</div></div>
+ <div class="step">${n?`<button class="sb" data-act="dec" data-id="${p.id}">−</button><input class="qi" inputmode="numeric" data-q="${p.id}" value="${n}">`:''}<button class="sb p" data-act="inc" data-id="${p.id}">+</button></div></div>`;
+}
+function plistHTML(){
+ const f=S.filter,s=S.q.trim().toLocaleLowerCase('tr');
+ let list=P.filter(p=>!s||p.n.toLocaleLowerCase('tr').includes(s));
+ if(f==='✦ Öneriler'){const ids=SUGG.map(x=>x.sku).filter(Boolean);list=list.filter(p=>ids.includes(p.id));}
+ else if(f==='Geçmiş')list=list.filter(p=>S.c.hist[p.id]);
+ else if(f!=='Tümü')list=list.filter(p=>p.cat===f);
+ return list.length?list.map(prow).join(''):`<div class="empty"><b>Sonuç yok</b>Filtreyi değiştir.</div>`;
+}
+function viewProducts(k){
+ const top=SUGG[0];
+ return `<div class="srch"><input id="q" type="search" placeholder="Ürün ara…" value="${S.q}" autocomplete="off"><div class="cats">${['Tümü','✦ Öneriler','Geçmiş',...CATS].map(c=>`<button class="cat ${c==='✦ Öneriler'?'ai':''} ${S.filter===c?'on':''}" data-act="filter" data-v="${c}">${c}</button>`).join('')}</div></div>
+ ${top?`<button class="aistrip" data-act="openAI"><span class="sp">✦</span><span class="tx"><b>Asistan · ${SUGG.length} öneri</b>${top.title}</span><span style="color:var(--ai1);font-weight:700">›</span></button>`:''}
+ <div class="plist" id="plist">${plistHTML()}</div>`;
+}
+function viewCart(k){
+ if(!k.lines.length)return `<div class="empty"><b>Sepet boş</b>Ürün ekle veya asistanın akıllı sepetini uygula.<div style="margin-top:14px"><button class="btn ai" data-act="openAI">✦ Asistanı aç</button></div></div>`;
+ const c=S.c,proj=c.balance+k.net;
+ return `<div class="sec"><h3><span>Sipariş satırları</span><span>${k.qty} koli</span></h3>${k.lines.map(l=>`<div class="cl"><div class="pimg">${img(l.p)}</div><div class="clm"><div class="pn">${l.p.n}</div>
+  <div class="disc"><button class="sb" data-act="dec" data-id="${l.id}">−</button><span class="v">${l.n} koli</span><button class="sb" data-act="inc" data-id="${l.id}">+</button>
+  <span style="margin-left:8px">İsk.</span><button class="sb" data-act="mdd" data-id="${l.id}">−</button><span class="v">%${((l.p.promo||0)+(S.manual[l.id]||0)).toLocaleString('tr-TR')}</span><button class="sb" data-act="mdi" data-id="${l.id}">+</button></div></div>
+  <div class="clr">${l.d?`<s>${fmt(l.g)}</s>`:''}<b>${fmt(l.net)}</b></div></div>`).join('')}
+  <div class="note" style="text-align:left;padding:6px 0 0">Satır iskontosu = ürün promosyonu + satışçı iskontosu (en fazla %${MAX_MANUAL}).</div></div>
+ ${Object.keys(k.free).length?`<div class="sec free"><h3><span>🎁 Bedava ürünler</span><span>${fmt(k.freeVal)}</span></h3>${Object.entries(k.free).map(([id,n])=>`<div class="cl"><div class="pimg">${img(PM[id])}</div><div class="clm"><div class="pn">${PM[id].n}</div><div class="pp">${n} koli · kampanya</div></div><div class="clr"><b>₺0</b></div></div>`).join('')}</div>`:''}
+ <div class="sec sum"><h3>Özet (KDV hariç)</h3>
+  <div class="r"><span>Brüt tutar</span><span>${fmt(k.gross)}</span></div>
+  ${k.lineDisc?`<div class="r d"><span>Satır iskontoları</span><span>−${fmt(k.lineDisc)}</span></div>`:''}
+  <div class="r d"><span>Kanal iskontosu (%${c.chDisc})</span><span>−${fmt(k.chDisc)}</span></div>
+  ${k.tierPct?`<div class="r d"><span>Hacim iskontosu (%${k.tierPct})</span><span>−${fmt(k.tierDisc)}</span></div>`:''}
+  ${k.mixPct?`<div class="r d"><span>Çeşit primi (%${MIX_PCT.toLocaleString('tr-TR')})</span><span>−${fmt(k.mixDisc)}</span></div>`:''}
+  <div class="r t"><span>Net</span><span>${fmt(k.net)}</span></div>
+  ${k.freeVal?`<div class="r f"><span>+ Bedava mal değeri</span><span>${fmt(k.freeVal)}</span></div>`:''}</div>
+ <div class="sec credit ${proj>c.limit?'bad':'ok'}"><span style="font-size:18px">${proj>c.limit?'⚠️':'✅'}</span><div><b>${proj>c.limit?'Limit aşımı — onaya düşer':'Kredi uygun'}</b><br>Bakiye ${fmt(c.balance)} + sipariş ${fmt(k.net)} = ${fmt(proj)} / limit ${fmt(c.limit)}</div></div>
+ <div class="sec"><h3>Sipariş notu</h3><textarea id="note" rows="2" placeholder="Teslimat notu…">${S.note}</textarea></div>`;
+}
+function pg(label,cur,need){const p=Math.min(100,cur/need*100);return `<div class="pg"><div class="pgl"><span>${label}</span><span>${Math.min(cur,need).toLocaleString('tr-TR')} / ${need.toLocaleString('tr-TR')}</span></div><div class="pgb"><i style="width:${p}%"></i></div></div>`;}
+function viewCamps(k){
+ const card=(st,title,desc,body,btn)=>`<div class="cp ${st}"><div class="cpt"><b>${title}</b><span class="st ${st}">${st==='won'?'Kazanıldı':st==='near'?'Yakın':'Aktif'}</span></div><div class="cpd">${desc}</div>${body}${btn||''}</div>`;
+ const sb=id=>{const s=SUGG.find(x=>x.id===id);return s&&s.acts[0]?`<div style="margin-top:10px"><button class="btn ai sm" data-act="sug" data-sid="${id}" data-ai="0">✦ ${s.acts[0].l}</button></div>`:''};
+ const st=(won,id)=>won?'won':SUGG.find(x=>x.id===id)?'near':'';
+ const zt=q('CCZ330')+q('CCZ1L'),mt=q('MON500');
+ const nb=k.nextTier;
+ return `<div style="height:2px"></div>
+ ${card(st(k.won.combo,'combo'),'Yaz Kombosu','2 koli Coca-Cola 330 + 5 koli Fanta 330 alana <b>2 koli Sprite 330 bedava</b>. Katlanır.',pg('Coca-Cola 330',q('CC330')-k.won.combo*2,2)+pg('Fanta 330',q('FAN330')-k.won.combo*5,5)+(k.won.combo?`<div class="cpd" style="color:var(--ok);margin:8px 0 0">✓ ${k.won.combo} set · ${k.won.combo*2} koli Sprite bedava</div>`:''),sb('combo')||sb('combo0'))}
+ ${card(st(k.won.zero,'zero'),'Zero Şekersiz Tanıtım','Toplam 3 koli Zero (330 ml / 1 L) alana <b>1 koli Zero 330 bedava</b>.',pg('Zero (koli)',zt%3||(zt?3:0),3)+(k.won.zero?`<div class="cpd" style="color:var(--ok);margin:8px 0 0">✓ ${k.won.zero} koli bedava</div>`:''),sb('zero'))}
+ ${card(st(k.won.mon,'mon'),'Monster 5+1','5 koli Monster alana <b>1 koli bedava</b>.',pg('Monster (koli)',mt%5||(mt?5:0),5)+(k.won.mon?`<div class="cpd" style="color:var(--ok);margin:8px 0 0">✓ ${k.won.mon} koli bedava</div>`:''),sb('mon'))}
+ ${card(k.tierPct?'won':st(0,'tier'),'Hacim İskontosu','Kanal sonrası net: '+TIERS.map(([t,p])=>`${fmt(t)}+ → %${p}`).join(' · '),pg(nb?`Sıradaki: %${nb[1]}`:'En üst kademe',Math.round(k.base),nb?nb[0]:Math.round(k.base)||1)+(k.tierPct?`<div class="cpd" style="color:var(--ok);margin:8px 0 0">✓ %${k.tierPct} uygulanıyor (−${fmt(k.tierDisc)})</div>`:''),sb('tier'))}
+ ${card(k.mixPct?'won':st(0,'mix'),'Çeşit Primi',`${MIX_NEED} farklı kategoriden ürün alana ek <b>%${MIX_PCT.toLocaleString('tr-TR')}</b>.`,pg('Kategori',k.cats.size,MIX_NEED),sb('mix'))}
+ ${card(q('CAPPY1L')+q('CAPPY200')?'won':'','Cappy Ayı','Tüm Cappy ürünlerinde <b>%8 satır iskontosu</b> (otomatik).','')}
+ ${card(q('FUSEMANGO')?'won':st(0,'x_mango'),'Fuse Tea Mango Lansman','Yeni ürün: <b>%15 lansman iskontosu</b>.','',sb('x_mango'))}`;
+}
+function renderFooter(k){
+ $('#ft').innerHTML=`<div class="tot"><small>Net · KDV hariç</small><b>${fmt(k.net)}</b><small>İskonto ${fmt(k.totalDisc)}${k.freeVal?` · Bedava ${fmt(k.freeVal)}`:''}</small></div><button class="go" data-act="submit" ${k.lines.length?'':'disabled'}>Siparişi Onayla</button>`;
+}
+
+/* ================= ASİSTAN PANELİ ================= */
+function sgCard(s){
+ return `<div class="sg p${s.pri<=1?1:2} ${s.type}"><div class="sgt"><span class="ic">${s.ic}</span><span class="tt">${s.title}</span>${s.impact&&s.type!=='risk'?`<span class="imp">+${fmt(s.impact)}</span>`:''}</div>
+ <div class="sgb">${s.body}</div><div class="why" id="why-${s.id}">💡 ${s.why}</div>
+ <div class="sga">${s.acts.map((a,i)=>`<button class="btn sm ${i===0?'ai':''}" data-act="sug" data-sid="${s.id}" data-ai="${i}">${a.l}</button>`).join('')}<button class="btn sm gh" data-act="why" data-sid="${s.id}">Neden?</button><button class="btn sm gh" data-act="dismiss" data-sid="${s.id}">Yoksay</button></div></div>`;
+}
+function renderAI(){
+ const sh=$('#sheet'),old=sh.querySelector('.shb'),st=old?old.scrollTop:0;
+ const body=S.aiTab==='sugg'
+  ?(SUGG.length?SUGG.map(sgCard).join(''):`<div class="empty"><b>Şu an öneri yok</b>Sepet bu noktanın profiline uygun görünüyor.</div>`)
+  :`<div class="qchips">${[['sell','Bu noktaya ne satmalıyım?'],['camp','Hangi kampanyaya yakınım?'],['target','Hedefime ne kadar kaldı?'],['credit','Kredi durumu?'],['sum','Ziyaret özeti']].map(([v,t])=>`<button class="qc" data-act="ask" data-v="${v}">${t}</button>`).join('')}</div>
+    <div class="chat">${S.chat.map(m=>m.typing?`<div class="msg ai typing"><span></span><span></span><span></span></div>`:`<div class="msg ${m.me?'me':'ai'}">${m.h}</div>`).join('')}</div>`;
+ sh.innerHTML=`<div class="shh"><div class="av"><svg viewBox="0 0 24 24"><path d="M12 3l1.8 4.6L18.5 9l-4.7 1.5L12 15l-1.8-4.5L5.5 9l4.7-1.4z" fill="#fff"/><path d="M18.5 14.5l.8 2 2 .8-2 .7-.8 2-.7-2-2-.7 2-.8z" fill="#fff"/></svg></div><div><b>Satış Asistanı</b><small>${S.c.name} · canlı analiz</small></div><button class="x" data-act="close">×</button></div>
+ <div class="kpis"><div class="kpi"><small>AÇIK ÖNERİ</small><b>${SUGG.length}</b></div><div class="kpi"><small>KABUL EDİLEN</small><b>${S.accepted}</b></div><div class="kpi"><small>EK SATIŞ KATKISI</small><b>${fmt(S.contrib)}</b></div></div>
+ <div class="seg"><button class="${S.aiTab==='sugg'?'on':''}" data-act="aiTab" data-v="sugg">Öneriler (${SUGG.length})</button><button class="${S.aiTab==='chat'?'on':''}" data-act="aiTab" data-v="chat">Sor</button></div>
+ <div class="shb" id="aib">${body}${S.aiTab==='sugg'?`<div class="note">Demo: fiyatlar, alım geçmişi ve istatistikler örnek veridir; öneriler kural tabanlı motor tarafından anlık üretilir.</div>`:''}</div>
+ ${S.aiTab==='chat'?`<form class="cf" id="chatf"><input id="chatin" placeholder="Asistana sor… (ör. hedef, kampanya)" autocomplete="off"><button class="btn ai">Gönder</button></form>`:''}`;
+ const nb=sh.querySelector('.shb');nb.scrollTop=S.aiTab==='chat'?nb.scrollHeight:st;
+}
+function openAI(tab){hideNudge();if(tab)S.aiTab=tab;S.sheet='ai';renderAI();openSheet();}
+function openSheet(){$('#ov').classList.add('open');$('#sheet').classList.add('open');}
+function closeSheet(){$('#ov').classList.remove('open');$('#sheet').classList.remove('open');S.sheet=null;}
+
+/* ---- sohbet ---- */
+function intentOf(t){t=t.toLocaleLowerCase('tr');
+ if(/hedef|prim|kota/.test(t))return 'target';if(/kampanya|bedava|iskonto|kombo/.test(t))return 'camp';
+ if(/kredi|bakiye|limit|tahsil|risk/.test(t))return 'credit';if(/özet|ozet/.test(t))return 'sum';
+ if(/sat|öner|oner|ne |ürün|urun|fırsat/.test(t))return 'sell';return 'x';}
+function answer(it){
+ const k=S.k,c=S.c,acts=l=>l.length?`<div class="na">${l.map(s=>`<button class="btn sm ai" data-act="sug" data-sid="${s.id}" data-ai="0">${s.acts[0].l}</button>`).join('')}</div>`:'';
+ if(it==='sell'){const t=SUGG.filter(s=>s.acts.length&&s.type!=='risk').slice(0,3);
+  return t.length?`Etki sırasına göre ilk ${t.length} aksiyon:<ol>${t.map(s=>`<li>${s.title}${s.impact?` <b>(+${fmt(s.impact)})</b>`:''}</li>`).join('')}</ol>${acts(t)}`:'Şu an ek satış fırsatı görmüyorum; sepet bu noktanın profiline uygun.';}
+ if(it==='target'){const pr=S.achieved+k.net,rem=Math.max(0,S.target-pr);
+  return `Bugün ${fmt(S.achieved)} gerçekleşti. Bu siparişle <b>${fmt(pr)}</b> (%${Math.round(pr/S.target*100)}).<br>${rem?`Kalan ${fmt(rem)}; planlı 4 ziyarette ziyaret başına ort. <b>${fmt(rem/4)}</b> gerekiyor.`:'Günlük hedef bu siparişle tamamlanıyor 🎯'}`;}
+ if(it==='camp'){const n=SUGG.filter(s=>s.type==='camp');const w=[];if(k.won.combo)w.push(`Yaz Kombosu ×${k.won.combo}`);if(k.won.zero)w.push(`Zero ×${k.won.zero}`);if(k.won.mon)w.push(`Monster 5+1 ×${k.won.mon}`);if(k.tierPct)w.push(`Hacim %${k.tierPct}`);if(k.mixPct)w.push('Çeşit primi');
+  return `<b>Kazanılan:</b> ${w.join(', ')||'henüz yok'}${k.freeVal?` · bedava mal ${fmt(k.freeVal)}`:''}<br><b>Yakın olanlar:</b>${n.length?`<ul>${n.map(s=>`<li>${s.title}</li>`).join('')}</ul>${acts(n.slice(0,2))}`:' yok'}`;}
+ if(it==='credit'){const pr=c.balance+k.net,cr=SUGG.find(s=>s.id==='credit'||s.id==='overdue');
+  return `Limit ${fmt(c.limit)} · açık bakiye ${fmt(c.balance)}${c.overdue?` (vadesi geçmiş ${fmt(c.overdue)})`:''}.<br>Bu siparişle ${fmt(pr)} → ${pr>c.limit?`<b style="color:var(--bad)">${fmt(pr-c.limit)} aşım, onaya düşer.</b>`:`<b style="color:var(--ok)">uygun, ${fmt(c.limit-pr)} pay kalıyor.</b>`}${cr&&cr.acts.length?acts([cr]):''}`;}
+ if(it==='sum'){return `<b>${c.name}</b> · ${k.lines.length} kalem, ${k.qty} koli<br>Net ${fmt(k.net)} · iskonto ${fmt(k.totalDisc)} · bedava ${fmt(k.freeVal)}<br>Asistan: ${S.accepted} öneri kabul, ek satış ${fmt(S.contrib)}<br>Açık fırsat: ${SUGG.filter(s=>s.type!=='risk').length}${SUGG.some(s=>s.type==='risk')?' · ⚠️ risk uyarısı var':''}`;}
+ return 'Bu demo asistan şu konularda yanıt verir: <b>ne satmalıyım</b>, <b>kampanyalar</b>, <b>hedef</b>, <b>kredi/bakiye</b>, <b>ziyaret özeti</b>.';
+}
+function ask(text,it){S.chat.push({me:1,h:text});S.chat.push({typing:1});renderAI();
+ setTimeout(()=>{S.chat.pop();S.chat.push({h:answer(it||intentOf(text))});if(S.sheet==='ai')renderAI();},550);}
+
+/* ================= NUDGE (ekrandan çıkan öneri) ================= */
+let nudgeT=null,nudgeAt=0;
+function showNudge({title,body,sid,cls,acts}){
+ const n=$('#nudge');n.className=cls||'';
+ n.innerHTML=`<div class="nh"><span>${cls==='cel'?'🎉 Kazanıldı':'✦ Satış asistanı'}</span><button data-act="nclose">×</button></div><div class="nt">${title}</div>${body?`<div class="nb">${body}</div>`:''}${acts!==false?`<div class="na">${sid?`<button class="btn sm ai" data-act="sug" data-sid="${sid}" data-ai="0">${(SUGG.find(s=>s.id===sid)||{acts:[{l:'Uygula'}]}).acts[0]?.l||'Gör'}</button>`:''}<button class="btn sm" data-act="openAI">Tüm öneriler</button></div>`:''}`;
+ placeNudge();requestAnimationFrame(()=>n.classList.add('show'));
+ const f=$('#fab');f.classList.remove('pulse');void f.offsetWidth;f.classList.add('pulse');
+ clearTimeout(nudgeT);nudgeT=setTimeout(hideNudge,cls==='cel'?4000:8000);nudgeAt=Date.now();
+}
+function hideNudge(){$('#nudge').classList.remove('show');clearTimeout(nudgeT);}
+function placeNudge(){
+ const n=$('#nudge'),app=$('#app').getBoundingClientRect(),W=app.width,H=app.height,fs=58;
+ const nw=n.offsetWidth,nh=n.offsetHeight||120;const right=fab.x+fs/2>W/2;
+ n.style.left=(right?Math.max(8,fab.x-nw-10):Math.min(W-nw-8,fab.x+fs+10))+'px';
+ n.style.top=Math.max(70,Math.min(H-nh-90,fab.y+fs/2-nh/2))+'px';
+ n.style.transformOrigin=right?'right center':'left center';
+}
+function afterRender(k){
+ if(S.welcome){S.welcome=false;SUGG.forEach(s=>S.nudged.add(s.id));
+  const sm=SUGG.find(s=>s.id==='smart');
+  setTimeout(()=>showNudge({title:`${S.c.name} ziyareti başladı — ${SUGG.length} fırsat buldum`,body:sm?sm.title:'',sid:sm?'smart':null}),500);
+  S.prevWon={...k.won};S.prevTier=k.tierPct;S.prevMix=k.mixPct;return;}
+ let cel=null;const w=k.won,p=S.prevWon;
+ if(w.combo>p.combo)cel=`Yaz Kombosu: ${w.combo*2} koli Sprite 330 bedava`;
+ else if(w.zero>p.zero)cel=`Zero tanıtım: ${w.zero} koli Zero 330 bedava`;
+ else if(w.mon>p.mon)cel=`Monster 5+1: ${w.mon} koli bedava`;
+ else if(k.tierPct>S.prevTier)cel=`Hacim iskontosu %${k.tierPct}’e çıktı (−${fmt(k.tierDisc)})`;
+ else if(k.mixPct>S.prevMix)cel=`Çeşit primi açıldı: ek %${MIX_PCT.toLocaleString('tr-TR')}`;
+ S.prevWon={...w};S.prevTier=k.tierPct;S.prevMix=k.mixPct;
+ if(S.sheet)return;
+ if(cel){showNudge({title:cel,cls:'cel',acts:false});return;}
+ if(Date.now()-nudgeAt<1800&&$('#nudge').classList.contains('show'))return;
+ const nx=SUGG.find(s=>s.pri<=1&&!S.nudged.has(s.id));
+ if(nx){S.nudged.add(nx.id);showNudge({title:nx.title,body:nx.impact&&nx.type!=='risk'?`Etki: +${fmt(nx.impact)}`:'',sid:nx.acts.length?nx.id:null,cls:nx.type==='risk'?'risk':''});}
+}
+
+/* ================= SÜRÜKLENEBİLİR ASİSTAN ================= */
+const fabEl=$('#fab');const fab={x:0,y:0};let drag=null;
+function placeFab(){fabEl.style.left=fab.x+'px';fabEl.style.top=fab.y+'px';}
+function initFab(){const r=$('#app').getBoundingClientRect();fab.x=r.width-72;fab.y=r.height-175;placeFab();}
+fabEl.addEventListener('pointerdown',e=>{drag={sx:e.clientX,sy:e.clientY,ox:fab.x,oy:fab.y,moved:false};fabEl.setPointerCapture(e.pointerId);});
+fabEl.addEventListener('pointermove',e=>{if(!drag)return;const dx=e.clientX-drag.sx,dy=e.clientY-drag.sy;
+ if(!drag.moved&&Math.hypot(dx,dy)>6){drag.moved=true;fabEl.classList.add('drag');hideNudge();}
+ if(drag.moved){const r=$('#app').getBoundingClientRect();fab.x=Math.max(6,Math.min(r.width-64,drag.ox+dx));fab.y=Math.max(60,Math.min(r.height-130,drag.oy+dy));placeFab();}});
+fabEl.addEventListener('pointerup',()=>{if(!drag)return;const m=drag.moved;drag=null;fabEl.classList.remove('drag');
+ if(!m){openAI();return;}const r=$('#app').getBoundingClientRect();fab.x=fab.x+29<r.width/2?12:r.width-70;placeFab();});
+fabEl.addEventListener('pointercancel',()=>{drag=null;fabEl.classList.remove('drag');});
+window.addEventListener('resize',()=>{const r=$('#app').getBoundingClientRect();fab.x=Math.min(fab.x,r.width-70);fab.y=Math.min(fab.y,r.height-130);placeFab();});
+
+/* ================= AKSİYONLAR ================= */
+function setQty(id,v){v=Math.max(0,Math.min(999,v|0));if(v)S.cart[id]=v;else{delete S.cart[id];delete S.manual[id];}render();}
+function showProduct(id){closeSheet();hideNudge();S.tab='products';S.filter='Tümü';S.q='';render();
+ const el=document.getElementById('row-'+id);if(el){el.scrollIntoView({block:'center',behavior:'smooth'});el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash');}}
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),1800);}
+function switchCust(id){S.cid=id;S.c=CUST[id];S.cart={};S.manual={};S.dismissed=new Set();S.nudged=new Set();S.contrib=0;S.accepted=0;S.chat=[];S.tasks=new Set();S.note='';S.visitStart=Date.now();S.welcome=true;S.tab='products';S.filter='Tümü';closeSheet();render();}
+function openCust(){S.sheet='cust';const sh=$('#sheet');
+ sh.innerHTML=`<div class="shh"><div><b>Rota · Bugünkü ziyaretler</b><small>Müşteri seç — sepet ve öneriler sıfırlanır</small></div><button class="x" data-act="close">×</button></div><div class="shb">${Object.entries(CUST).map(([id,c])=>`<button class="crow ${id===S.cid?'on':''}" data-act="setCust" data-v="${id}"><span class="ci">${c.ico}</span><span style="flex:1"><b>${c.name}</b><small>${c.area} · ${c.channel} · limit ${fmt(c.limit)} · bakiye ${fmt(c.balance)}</small></span>${id===S.cid?'<span style="color:var(--navy);font-weight:700">●</span>':''}</button>`).join('')}</div>`;openSheet();}
+function openSubmit(){const k=S.k,c=S.c,over=c.balance+k.net>c.limit;S.sheet='sub';
+ $('#sheet').innerHTML=`<div class="shh"><div><b>Siparişi onayla</b><small>${c.name} · ${k.lines.length} kalem · ${k.qty} koli</small></div><button class="x" data-act="close">×</button></div>
+ <div class="shb">${k.lines.map(l=>`<div class="ml"><span>${l.n} × ${l.p.n}</span><span>${fmt(l.net)}</span></div>`).join('')}${Object.entries(k.free).map(([id,n])=>`<div class="ml" style="color:var(--ok)"><span>🎁 ${n} × ${PM[id].n}</span><span>₺0</span></div>`).join('')}
+ <div class="ml"><span>Toplam iskonto</span><span style="color:var(--ok)">−${fmt(k.totalDisc)}</span></div><div class="ml" style="font-weight:800;font-size:16px;border:0;padding-top:10px"><span>Net (KDV hariç)</span><span>${fmt(k.net)}</span></div>
+ ${over?`<div class="sec credit bad" style="margin:10px 0">⚠️ <div>Kredi limiti aşılıyor — sipariş <b>bölge müdürü onayına</b> gönderilecek.</div></div>`:''}
+ ${SUGG.filter(s=>s.pri<=1&&s.type!=='risk').length?`<div class="sec" style="margin:10px 0;background:var(--aibg)"><b style="color:var(--ai1)">✦ Göndermeden önce:</b> ${SUGG.filter(s=>s.pri<=1&&s.type!=='risk').length} yüksek öncelikli fırsat açık. <button class="btn sm ai" data-act="openAI" style="margin-top:8px">Önerileri gör</button></div>`:''}
+ <div style="display:flex;gap:8px;margin-top:12px"><button class="btn full" data-act="close">Geri</button><button class="btn pr full" data-act="send">${over?'Onaya gönder':'Siparişi gönder'}</button></div></div>`;openSheet();}
+function sendOrder(){const k=S.k,c=S.c;S.achieved+=k.net;c.balance+=k.net;c.lastOrder=k.net;c.lastVisit='bugün';S.orderNo++;
+ const share=k.net?Math.min(100,Math.round(S.contrib/k.net*100)):0,mins=Math.max(1,Math.round((Date.now()-S.visitStart)/60000));S.sheet='done';
+ $('#sheet').innerHTML=`<div class="shb"><div class="ok-big"><div class="ck">✓</div><b style="font-size:18px">Sipariş #DEMO-${S.orderNo} iletildi</b><div class="pp" style="margin-top:4px">${c.name} · ${mins} dk ziyaret</div></div>
+ <div class="stats"><div><small>Net ciro</small><b>${fmt(k.net)}</b></div><div><small>Bedava mal</small><b>${fmt(k.freeVal)}</b></div><div><small>Asistanın ek satışı</small><b style="color:var(--ai1)">${fmt(S.contrib)}</b></div><div><small>Ciroya oranı</small><b style="color:var(--ai1)">%${share}</b></div><div><small>Kabul edilen öneri</small><b>${S.accepted}</b></div><div><small>Günlük hedef</small><b>%${Math.round(S.achieved/S.target*100)}</b></div></div>
+ <button class="btn pr full" data-act="nextCust">Sonraki müşteriye geç</button><div style="height:8px"></div><button class="btn full" data-act="sameCust">Aynı noktada yeni sipariş</button></div>`;
+ S.cart={};S.manual={};render();}
+function about(){S.sheet='about';$('#sheet').innerHTML=`<div class="shh"><div><b>Demo hakkında</b><small>Nasıl denenir?</small></div><button class="x" data-act="close">×</button></div><div class="shb" style="font-size:13.5px;line-height:1.55">
+ <ol style="padding-left:18px;margin:0"><li>Sağ alttaki <b>✦ asistanı</b> sürükleyip ekranın istediğin yerine bırak; önerilerin baloncukları oradan çıkar.</li><li>Açılıştaki <b>Akıllı sepet</b>i uygula, sonra Fanta 330’u 1 azalt — asistan kombo kaybını yakalar.</li><li>Sepette satır iskontosu ver, kampanya ilerlemesini <b>Kampanyalar</b> sekmesinde izle.</li><li>Müşteriyi değiştir (üstteki isim): Büfe’de Monster 5+1 ve çapraz satış, Süpermarket’te hacim kademesi senaryoları var.</li><li>Asistan panelinde <b>Sor</b> sekmesi: hedef, kredi, kampanya soruları.</li></ol>
+ <div class="sec" style="margin:14px 0 0;background:#f5f6f9;font-size:12.5px">Fiyatlar, alım geçmişi, kredi verileri ve “benzer noktalar” istatistikleri <b>örnek veridir</b>. Öneriler tarayıcıda çalışan kural tabanlı bir motordan anlık üretilir; gerçek üründe bu katman sipariş geçmişi + ML modeli/LLM ile beslenir.</div></div>`;openSheet();}
+function nextCust(){const ids=Object.keys(CUST);switchCust(ids[(ids.indexOf(S.cid)+1)%ids.length]);}
+
+document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act,id=b.dataset.id,sid=b.dataset.sid;
+ switch(a){
+ case 'inc':setQty(id,q(id)+1);break;
+ case 'dec':setQty(id,q(id)-1);break;
+ case 'mdi':case 'mdd':{const v=(S.manual[id]||0)+(a==='mdi'?.5:-.5);if(v>MAX_MANUAL){toast(`Satışçı iskonto yetkisi en fazla %${MAX_MANUAL}`);break;}S.manual[id]=Math.max(0,v);render();break;}
+ case 'tab':S.tab=b.dataset.v;render();$('#main').scrollTop=0;break;
+ case 'filter':S.filter=b.dataset.v;render();break;
+ case 'sug':{const s=SUGG.find(x=>x.id===sid);if(!s||!s.acts[+b.dataset.ai]){toast('Bu öneri artık geçerli değil');break;}const ac=s.acts[+b.dataset.ai];hideNudge();ac.f();if(!ac.noRender)render();break;}
+ case 'openSug':openAI('sugg');setTimeout(()=>{const w=document.getElementById('why-'+sid);if(w)w.closest('.sg').scrollIntoView({block:'center',behavior:'smooth'});},300);break;
+ case 'dismiss':S.dismissed.add(sid);render();break;
+ case 'why':{const w=document.getElementById('why-'+sid);if(w)w.classList.toggle('on');break;}
+ case 'openAI':openAI();break;
+ case 'nclose':hideNudge();break;
+ case 'close':closeSheet();break;
+ case 'aiTab':S.aiTab=b.dataset.v;renderAI();break;
+ case 'ask':ask(b.textContent,b.dataset.v);break;
+ case 'pickCust':openCust();break;
+ case 'setCust':switchCust(b.dataset.v);break;
+ case 'submit':openSubmit();break;
+ case 'send':sendOrder();break;
+ case 'nextCust':nextCust();break;
+ case 'sameCust':closeSheet();S.welcome=true;S.nudged=new Set();S.contrib=0;S.accepted=0;S.visitStart=Date.now();render();break;
+ case 'about':about();break;
+ }});
+document.addEventListener('input',e=>{if(e.target.id==='q'){S.q=e.target.value;$('#plist').innerHTML=plistHTML();}if(e.target.id==='note')S.note=e.target.value;});
+document.addEventListener('change',e=>{const id=e.target.dataset.q;if(id)setQty(id,parseInt(e.target.value)||0);});
+document.addEventListener('submit',e=>{if(e.target.id==='chatf'){e.preventDefault();const v=$('#chatin').value.trim();if(v)ask(v);}});
+
+/* zamanlayıcı */
+function tick(){const t=$('#timer');if(!t)return;const s=Math.floor((Date.now()-S.visitStart)/1000);t.textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
+setInterval(tick,1000);
+
+initFab();render();
+</script>
+</body>
+</html>
