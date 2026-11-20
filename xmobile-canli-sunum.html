@@ -173,7 +173,7 @@ table.t td.n{text-align:right}
 .photo{aspect-ratio:1;border-radius:8px;background:linear-gradient(135deg,#d6dbe1,#eef0f3);display:flex;align-items:center;justify-content:center;color:#8A929C;font-size:11px;text-align:center;padding:4px}
 
 /* ---------- mobil tarayıcı: tam ekran ---------- */
-@media (max-width:600px), (max-height:700px) and (pointer:coarse){
+@media (max-width:600px), (pointer:coarse){
   body{padding:0;background:var(--bg);display:block}
   .phone{width:100%;height:100vh;height:100dvh;border-radius:0;padding:0;box-shadow:none}
   .screen{border-radius:0;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
@@ -182,6 +182,10 @@ table.t td.n{text-align:right}
   .body{-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
   .appbar .ib{width:36px}
 }
+html.mob body{padding:0;background:var(--bg);display:block}
+html.mob .phone{width:100%;height:100vh;height:100dvh;border-radius:0;padding:0;box-shadow:none}
+html.mob .screen{border-radius:0}
+html.mob .status{display:none}
 </style>
 </head>
 <body>
@@ -463,8 +467,15 @@ function overlay(){
   case 'summary': {
     const done=S.customers.filter(x=>x.status==='visited_sale').length, nos=S.customers.filter(x=>x.status==='visited_nosale').length;
     const sales=S.slips.filter(x=>x.type!=='İade').reduce((s,x)=>s+x.total,0)+28640, pays=S.payments.reduce((s,x)=>s+x.amount,0)+9200;
-    return W(`<div class="dlg" data-stop><button class="x" data-a="closeOv">${ic('x')}</button><h2 style="text-align:left">Gün Özeti</h2><hr>
-      ${[['Planlanan ziyaret',S.customers.filter(x=>x.days.includes('Cu')).length],['Satışlı ziyaret',done],['Satışsız ziyaret',nos],['Satış (KDV dahil)',tl(sales)],['Tahsilat',tl(pays)],['Strike rate','%'+Math.round(done/Math.max(1,done+nos)*100)]].map(([k,v])=>`<div class="row" style="padding:10px 0;border-bottom:1px solid var(--line)"><span class="sp">${k}</span><b>${v}</b></div>`).join('')}</div>`);
+    const plan=S.customers.filter(x=>x.days.includes('Cu')).length, sr=Math.round(done/Math.max(1,done+nos)*100), left=Math.max(0,plan-done-nos);
+    const lira=n=>Math.round(n).toLocaleString('tr-TR')+' lira';
+    U._sumText=`Gün özeti. Bugün ${plan} ziyaret planlı. ${done+nos} ziyaret tamamlandı: ${done} satışlı, ${nos} satışsız. `+
+      (left?`${left} nokta kaldı. `:'Planlı tüm noktalar ziyaret edildi. ')+
+      `Toplam satış, KDV dahil ${lira(sales)}. Tahsilat ${lira(pays)}. Satışa dönüşme oranı yüzde ${sr}.`+
+      (sr<60&&done+nos>0?' Satışa dönüşme oranı düşük; kalan ziyaretlerde sipariş asistanını kullan.':'');
+    return W(`<div class="dlg" data-stop><button class="x" data-a="closeOv">${ic('x')}</button><h2 style="text-align:left">Gün Özeti</h2>
+      <div style="margin-top:10px"><button class="btn gray" data-a="speak" data-k="sum">▶ Dinle</button> <span class="new">YENİ</span></div><hr>
+      ${[['Planlanan ziyaret',plan],['Satışlı ziyaret',done],['Satışsız ziyaret',nos],['Kalan nokta',left],['Satış (KDV dahil)',tl(sales)],['Tahsilat',tl(pays)],['Strike rate','%'+sr]].map(([k,v])=>`<div class="row" style="padding:10px 0;border-bottom:1px solid var(--line)"><span class="sp">${k}</span><b>${v}</b></div>`).join('')}</div>`);
   }
   case 'newslip': return W(`<div class="dlg" data-stop><h2 style="font-size:18px">Fiş tipi seçin</h2><hr>
       ${[['Sipariş','Order'],['Satış Faturası','Invoice'],['İade','Return'],['Hasarlı Ürün','Damaged']].map(([n,k])=>`<button class="btn out" style="width:100%;margin:5px 0;text-align:left" data-a="startSlip" data-k="${n}">${n}</button>`).join('')}
@@ -717,7 +728,19 @@ SCREENS.dayoff = () => simpleList('İzin', S.dayoffs.map(d=>[d.type+' · '+d.sta
 SCREENS.dayoffedit = () => ({title:'İzin Talebi', body:`<div class="card"><div class="grid2"><div class="field"><label>Başlangıç</label><input id="doS" type="date" value="2026-12-07"></div><div class="field"><label>Bitiş</label><input id="doE" type="date" value="2026-12-08"></div></div><div class="field"><label>Tip</label><select id="doT"><option>Yıllık izin</option><option>Mazeret</option><option>Rapor</option></select></div><div class="field"><label>Açıklama</label><textarea id="doX" rows="3"></textarea></div></div>`, bottom:`<button data-a="back">Geri</button><button class="primary" data-a="dayoffSave">Kaydet</button>`});
 SCREENS.usersettings = () => ({title:'Kullanıcı Arayüzü', body:`<div class="card grid2"><div><div class="photo" style="aspect-ratio:1">Kullanıcı fotoğrafı</div><button class="btn out" style="width:100%;margin-top:8px" data-a="toast" data-t="Fotoğraf güncellendi">${ic('photo')} Çek</button></div><div><div class="field"><label>Dil</label><select><option>Türkçe</option><option>English</option><option>العربية</option></select></div><div class="field"><label>Tema</label><select><option>Kırmızı</option><option>Mavi</option></select></div><div class="field"><label>Yazı boyutu</label><select><option>Orta</option><option>Büyük</option></select></div></div></div><div class="card small muted" style="line-height:1.8">Firma: EFE-TEST<br>Sürüm: ${VERSION}<br>MAC ID: 3C:A0:67:1F:22:9B<br>IMEI: 35•••••••••0421</div>`, bottom:`<button data-a="back">Geri</button>`});
 SCREENS.printer = () => ({title:'Yazıcı', body:`<div class="card"><div class="seg">${['Bluetooth','Wi-Fi'].map((t,i)=>`<button class="${i===0?'act':''}">${t}</button>`).join('')}</div><div class="field"><label>Yazıcı tipi</label><select><option>Zebra ZQ520 (ZPL)</option><option>Intermec PR3</option><option>Termal 80 mm</option></select></div><label class="row small"><input type="checkbox"> Kesikli</label><label class="row small" style="margin-top:6px"><input type="checkbox"> Yavaş</label><button class="btn out" style="width:100%;margin-top:10px" data-a="toast" data-t="2 cihaz bulundu">${ic('search')} Ara</button></div><div class="card"><div class="h3">Eşleşmiş cihazlar</div><div class="row" style="padding:8px 0">${ic('print')}<span class="sp">ZQ520-4411</span><span class="badge g">Bağlı</span></div></div>`, bottom:`<button data-a="back">Geri</button><button class="primary" data-a="toast" data-t="Test sayfası yazdırıldı">Test Yazdır</button>`});
-SCREENS.onlinerep = () => ({title:'Çevrimiçi Rapor', body: S.online? `<div class="card"><div class="h3">Müşteri performans raporu</div><table class="t" style="margin-top:8px"><tr><th>Ay</th><th>Ciro</th><th>Ziyaret</th></tr><tr><td>Eylül</td><td class="n">84,210</td><td class="n">4</td></tr><tr><td>Ekim</td><td class="n">91,880</td><td class="n">5</td></tr><tr><td>Kasım</td><td class="n">63,400</td><td class="n">3</td></tr></table></div>` : '<div class="empty">Çevrimiçi olmanız gerekiyor</div>', bottom:`<button data-a="back">Geri</button>`});
+SCREENS.onlinerep = () => {
+  if(!S.online) return {title:'Çevrimiçi Rapor', body:'<div class="empty">Çevrimiçi olmanız gerekiyor</div>', bottom:`<button data-a="back">Geri</button>`};
+  const c=selC(); const R=[['Eylül',84210,4],['Ekim',91880,5],['Kasım',63400,3]];
+  const day=TODAY.getDate(), proj=Math.round(R[2][1]/day*30/100)*100, prev=R[1][1], diff=Math.round((proj-prev)/prev*100);
+  const lira=n=>n.toLocaleString('tr-TR')+' lira';
+  const avg=R.map(r=>Math.round(r[1]/r[2]));
+  U._repText=`${c?c.name+' için m':'M'}üşteri performans raporu. Eylülde ${lira(R[0][1])} ciro, ${R[0][2]} ziyaret. Ekimde ${lira(R[1][1])} ciro, ${R[1][2]} ziyaret; Eylüle göre yüzde ${Math.round((R[1][1]-R[0][1])/R[0][1]*100)} artış. `+
+    `Kasımda bugüne kadar ${lira(R[2][1])} ciro ve ${R[2][2]} ziyaret var. Bu hızla ay sonu tahmini yaklaşık ${lira(proj)}; bu, Ekime göre yüzde ${Math.abs(diff)} ${diff>=0?'artış':'düşüş'} demek. `+
+    `Ziyaret başına ortalama ciro Kasımda ${lira(avg[2])}.`;
+  return {title:'Çevrimiçi Rapor', head:c?custHead():'', body:`<div class="card"><div class="row"><div class="h3 sp">Müşteri performans raporu</div><button class="btn gray" style="padding:8px 12px" data-a="speak" data-k="rep">▶ Dinle</button></div>
+   <table class="t" style="margin-top:10px"><tr><th>Ay</th><th>Ciro</th><th>Ziyaret</th><th>Ort./ziyaret</th></tr>${R.map((r,k)=>`<tr><td>${r[0]}</td><td class="n">${r[1].toLocaleString('tr-TR')}</td><td class="n">${r[2]}</td><td class="n">${avg[k].toLocaleString('tr-TR')}</td></tr>`).join('')}</table>
+   <div class="small muted" style="margin-top:10px">Kasım ay sonu tahmini: <b>${proj.toLocaleString('tr-TR')} TL</b> (${diff>=0?'+':''}%${diff} Ekim'e göre) <span class="new">YENİ</span></div></div>`, bottom:`<button data-a="back">Geri</button>`};
+};
 SCREENS.offlinerep = () => ({title:'Çevrimdışı Raporlar', body:`<div class="tabs">${['Satış','Tahsilat','Ziyaret'].map((t,i)=>`<button class="${i===0?'act':''}">${t}</button>`).join('')}</div><table class="t"><tr><th>Müşteri</th><th>Fiş</th><th>Tutar</th></tr>${S.slips.map(s=>`<tr><td>${esc(C(s.cust).name)}</td><td>${s.no}</td><td class="n">${fmt(s.total)}</td></tr>`).join('')||'<tr><td colspan="3" class="muted">Bugün fiş yok</td></tr>'}</table>`, bottom:`<button data-a="back">Geri</button>`});
 SCREENS.map = () => ({title:'Harita', body:`<div class="map"><svg width="100%" height="100%" style="position:absolute;inset:0"><path d="M0 200 Q200 150 400 260" stroke="#fff" stroke-width="14" fill="none"/><path d="M120 0 L180 700" stroke="#fff" stroke-width="10" fill="none"/><path d="M0 450 L400 380" stroke="#fff" stroke-width="10" fill="none"/></svg>${S.customers.map((c,i)=>`<div class="pin" style="left:${15+((i*37)%70)}%;top:${15+((i*23)%65)}%;background:${c.status==='visited_sale'?'var(--ok)':c.status==='visited_nosale'?'#E2A400':'var(--red)'}" data-a="selCust" data-k="${c.id}">${c.order}. ${esc(c.name)}</div>`).join('')}<div style="position:absolute;left:46%;top:48%;width:16px;height:16px;border-radius:50%;background:#1D5FD1;border:3px solid #fff;box-shadow:0 0 0 6px rgba(29,95,209,.25)"></div></div>`, bottom:`<button data-a="back">Geri</button>`});
 SCREENS.briefcase = () => simpleList('Evrak Çantası',[['Kasım fiyat listesi.pdf','Satıcı dosyası','Aç'],['GOLD kampanya broşürü.pdf','Satıcı dosyası','Aç'],['Dolap sözleşmesi örneği.pdf','Müşteri dosyası','Aç']]);
@@ -761,7 +784,7 @@ const A = {
   },
   logout:()=>{ U.drawer=false; U.stack=[{s:'login'}]; render(); },
   newsOk:()=>{ S.seenVersion=VERSION; save(); U.overlay=null; render(); setTimeout(maybeDay,250); },
-  speak:d=>{ speak(d.k==='day'?U._dayText:U._briefText); },
+  speak:d=>{ speak(d.k==='day'?U._dayText:d.k==='sum'?U._sumText:d.k==='rep'?U._repText:U._briefText); },
   refresh:()=>{ U.drawer=false; let p=0; const st=['Gönderiliyor','Fiyatlar','Stoklar','Tamamlandı']; const t=setInterval(()=>{p+=20; U.overlay={name:'sync',p,step:st[Math.min(3,Math.floor(p/30))]}; render(); if(p>=100){clearInterval(t); setTimeout(()=>{U.overlay=null; toast('Veriler güncellendi');},300);} },180); },
   selCust:d=>{ S.sel=d.k; save(); go('visit'); },
   fToggle:()=>{U.fOpen=!U.fOpen; render();}, fEquip:()=>{U.fEquip=!U.fEquip; render();},
@@ -879,6 +902,7 @@ document.addEventListener('input', e=>{
 });
 setInterval(()=>{ const st=cur(); if(st.s==='visit' && S.visit && !U.overlay && !U.drawer && document.activeElement.tagName!=='INPUT'){ const b=document.querySelector('.visithead'); if(b){ const sec=Math.floor((Date.now()-new Date(S.visit.start))/1000); const hh=n=>String(n).padStart(2,'0'); b.innerHTML=`Ziyaret Başlangıcı: ${dstr(new Date(S.visit.start))} ${new Date(S.visit.start).toLocaleTimeString('tr-TR')}<br>Geçen Süre: ${hh(Math.floor(sec/3600))}:${hh(Math.floor(sec/60)%60)}:${hh(sec%60)}`; } } },1000);
 try{ speechSynthesis && speechSynthesis.getVoices(); }catch(e){}
+if(matchMedia('(pointer:coarse)').matches||innerWidth<=640) document.documentElement.classList.add('mob');
 render();
 </script>
 </body>
