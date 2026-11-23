@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>XField Şef</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Layout: sol tarafta ekran dizini + açıklama, sağda telefon çerçevesi içinde şef uygulaması */
+:root{
+  --bg:#eef1f3; --panel:#ffffff; --ink:#15232b; --muted:#5d6b73; --line:#d8dee2;
+  --accent:#0c6b7a; --accent-soft:#e0f0f2; --new:#b8590b; --new-soft:#fdf0e3;
+  --ok:#1d7a46; --ok-soft:#e3f3ea; --warn:#a76a00; --warn-soft:#fbf1dc; --bad:#b3261e; --bad-soft:#fbe6e4;
+  --phone:#0f1a20; --screen:#f6f8f9; --card:#ffffff;
+  --display:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e1417; --panel:#151d21; --ink:#e3eaee; --muted:#93a2aa; --line:#2a363c;
+    --accent:#4fb3c2; --accent-soft:#16343a; --new:#f0a35c; --new-soft:#3a2614;
+    --ok:#5cc58a; --ok-soft:#173326; --warn:#e3b04f; --warn-soft:#382b12; --bad:#f07a71; --bad-soft:#3d1c1a;
+    --phone:#05090b; --screen:#11181c; --card:#19232a; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e1417; --panel:#151d21; --ink:#e3eaee; --muted:#93a2aa; --line:#2a363c;
+  --accent:#4fb3c2; --accent-soft:#16343a; --new:#f0a35c; --new-soft:#3a2614;
+  --ok:#5cc58a; --ok-soft:#173326; --warn:#e3b04f; --warn-soft:#382b12; --bad:#f07a71; --bad-soft:#3d1c1a;
+  --phone:#05090b; --screen:#11181c; --card:#19232a; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 20px 40px;display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:28px;align-items:start}
+@media (max-width:900px){.wrap{grid-template-columns:minmax(0,1fr)}.phone-col{order:-1}}
+
+/* Sol panel */
+.side h1{font-family:var(--display);font-size:24px;margin:0 0 4px;text-wrap:balance}
+.side .sub{color:var(--muted);margin:0 0 18px;max-width:62ch}
+.legend{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:18px}
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;letter-spacing:.02em;padding:2px 7px;border-radius:999px;white-space:nowrap}
+.tag.new{background:var(--new-soft);color:var(--new)}
+.tag.cur{background:var(--accent-soft);color:var(--accent)}
+.toggle{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:4px 12px 4px 6px;font-size:13px}
+.toggle .knob{width:30px;height:18px;border-radius:9px;background:var(--line);position:relative;transition:background .15s}
+.toggle .knob::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:left .15s}
+.toggle[aria-pressed="true"] .knob{background:var(--new)}
+.toggle[aria-pressed="true"] .knob::after{left:14px}
+.index{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px;margin-bottom:22px}
+.index button{display:flex;justify-content:space-between;align-items:center;gap:8px;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 12px}
+.index button[aria-current="true"]{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+.index .nm{font-weight:600;font-size:14px}
+.note{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.note h2{font-size:17px;margin:0 0 4px}
+.note .why{color:var(--muted);margin:0 0 12px;max-width:65ch}
+.note h3{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:14px 0 6px}
+.note ul{margin:0;padding-left:18px;display:grid;gap:4px}
+.note code{font-family:var(--mono);font-size:12px;background:var(--accent-soft);color:var(--accent);padding:1px 5px;border-radius:4px}
+.note code.n{background:var(--new-soft);color:var(--new)}
+.foot{color:var(--muted);font-size:12px;margin-top:14px;max-width:70ch}
+
+/* Telefon */
+.phone-col{position:sticky;top:16px}
+.phone{width:100%;max-width:390px;margin:0 auto;height:800px;max-height:calc(100vh - 32px);min-height:620px;background:var(--phone);border-radius:46px;padding:12px;box-shadow:0 18px 40px rgba(0,0,0,.25)}
+.screen{height:100%;background:var(--screen);overflow:hidden;display:flex;flex-direction:column;position:relative}
+.appbar,.scroll,.tabs{padding-left:max(14px,calc((100% - 680px)/2));padding-right:max(14px,calc((100% - 680px)/2))}
+.appbar{padding-top:max(12px,env(safe-area-inset-top))}
+.tabs{padding-bottom:max(14px,env(safe-area-inset-bottom))}
+.toast{max-width:640px;margin:0 auto}
+.status{display:flex;justify-content:space-between;padding:12px 26px 4px;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+.appbar{display:flex;align-items:center;gap:10px;padding-bottom:10px}
+.appbar .back{border:0;background:var(--card);width:32px;height:32px;border-radius:50%;display:grid;place-items:center;box-shadow:0 0 0 1px var(--line)}
+.appbar .t{font-weight:700;font-size:17px;line-height:1.2}
+.appbar .s{font-size:12px;color:var(--muted)}
+.scroll{flex:1;overflow-y:auto;padding-top:10px;padding-bottom:16px;display:flex;flex-direction:column;gap:12px}
+.tabs{display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--line);background:var(--card);padding:6px 4px 14px}
+.tabs button{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10.5px;color:var(--muted);position:relative;padding:4px 0}
+.tabs button svg{width:22px;height:22px}
+.tabs button[aria-current="true"]{color:var(--accent);font-weight:600}
+.tabs .dot{position:absolute;top:0;right:calc(50% - 18px);background:var(--bad);color:#fff;font-size:9.5px;font-weight:700;border-radius:8px;padding:0 5px;line-height:15px}
+
+/* Uygulama bileşenleri */
+.card{background:var(--card);border-radius:14px;padding:12px 14px;box-shadow:0 0 0 1px var(--line);position:relative}
+.card h4{margin:0 0 8px;font-size:13px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.card h4 .lbl{text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600;font-size:11.5px}
+
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.kpi{background:var(--card);border-radius:12px;padding:10px 12px;box-shadow:0 0 0 1px var(--line);position:relative}
+.kpi .v{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+.kpi .k{font-size:11.5px;color:var(--muted)}
+.kpi .d{font-size:11.5px;font-weight:600}
+.bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:3px}
+.row{display:flex;align-items:center;gap:10px}
+.av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;background:var(--accent-soft);color:var(--accent);flex:none}
+.grow{flex:1;min-width:0}
+.nm{font-weight:600;font-size:14px}
+.mut{color:var(--muted);font-size:12px}
+.num{font-variant-numeric:tabular-nums}
+.pill{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)} .pill.warn{background:var(--warn-soft);color:var(--warn)} .pill.bad{background:var(--bad-soft);color:var(--bad)} .pill.info{background:var(--accent-soft);color:var(--accent)}
+.list{display:flex;flex-direction:column}
+.list > *{padding:10px 0;border-top:1px solid var(--line)}
+.list > *:first-child{border-top:0;padding-top:2px}
+.btns{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.btn{border:1px solid var(--line);background:var(--card);border-radius:9px;padding:6px 10px;font-size:12.5px;font-weight:600}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+:root[data-theme="dark"] .btn.pri{color:#06232a}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .btn.pri{color:#06232a}}
+.btn.bad{color:var(--bad)}
+.q{display:grid;grid-template-columns:4px minmax(0,1fr);gap:10px}
+.q .sev{border-radius:2px}
+.q .top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.q .imp{font-weight:700;font-variant-numeric:tabular-nums;font-size:13px;white-space:nowrap}
+.src{font-size:10.5px;color:var(--muted);border:1px solid var(--line);border-radius:5px;padding:0 5px}
+.chipbar{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+.chipbar button{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:4px 10px;font-size:12px;white-space:nowrap}
+.chipbar button[aria-pressed="true"]{background:var(--ink);color:var(--screen);border-color:var(--ink)}
+.newtag{position:absolute;top:-8px;right:10px}
+.ai{background:linear-gradient(0deg,var(--card),var(--card)) padding-box;border:1px solid var(--new)}
+.small{font-size:12.5px}
+table.t{width:100%;border-collapse:collapse;font-size:12.5px}
+table.t th{text-align:left;color:var(--muted);font-weight:600;font-size:11px;padding:4px 0}
+table.t td{padding:6px 0;border-top:1px solid var(--line);font-variant-numeric:tabular-nums}
+table.t td.r,table.t th.r{text-align:right}
+.ps{display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px;align-items:center}
+.ring{width:78px;height:78px}
+.psrow{display:grid;grid-template-columns:96px minmax(0,1fr) 30px;gap:8px;align-items:center;font-size:12px}
+.toast{position:absolute;left:14px;right:14px;bottom:78px;background:var(--ink);color:var(--screen);border-radius:12px;padding:10px 14px;font-size:13px;opacity:0;transform:translateY(8px);transition:.2s;pointer-events:none}
+.toast.on{opacity:1;transform:none}
+.push{background:color-mix(in srgb,var(--card) 88%,transparent);border-radius:16px;padding:10px 12px;box-shadow:0 0 0 1px var(--line)}
+.push .h{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted)}
+.lock{background:linear-gradient(160deg,#20424a,#0f2329);border-radius:18px;padding:14px 10px;display:flex;flex-direction:column;gap:8px}
+.lock .clock{color:#fff;text-align:center;font-size:40px;font-weight:300;line-height:1;margin:6px 0 2px}
+.lock .date{color:#cfe3e7;text-align:center;font-size:12px;margin-bottom:6px}
+.rank{width:22px;text-align:center;font-weight:700;font-variant-numeric:tabular-nums}
+.tabs{padding-left:max(4px,calc((100% - 680px)/2));padding-right:max(4px,calc((100% - 680px)/2));padding-bottom:max(14px,env(safe-area-inset-bottom))}
+
+/* Android 9:16 cihaz görünümü */
+body{min-height:100vh;display:grid;place-items:center;background:var(--bg)}
+.device{position:relative;height:min(calc(100vh - 32px),calc((100vw - 32px)*16/9));height:min(calc(100dvh - 32px),calc((100vw - 32px)*16/9));aspect-ratio:9/16;background:#0b0f12;border-radius:34px;padding:7px;box-shadow:0 0 0 1px #2b3338,0 20px 50px rgba(0,0,0,.28)}
+.device .screen{height:100%;border-radius:28px}
+.punch{position:absolute;top:17px;left:50%;width:12px;height:12px;margin-left:-6px;border-radius:50%;background:#000;box-shadow:0 0 0 2px #161b1f;z-index:5}
+.status{display:flex;justify-content:space-between;align-items:center;padding:9px 22px 2px;font-size:13px;font-weight:500}
+.sicons{display:flex;align-items:center;gap:5px}
+.appbar{padding-top:6px}
+.appbar .back{background:none;box-shadow:none;width:40px;height:40px;margin-left:-8px;border-radius:50%}
+.appbar .back:hover{background:var(--accent-soft)}
+.appbar .t{font-size:20px;font-weight:600}
+.tabs{padding-top:10px;padding-bottom:6px}
+.tabs button{gap:4px;font-size:11.5px;font-weight:500}
+.tabs .ind{position:relative;width:56px;height:30px;border-radius:15px;display:grid;place-items:center;transition:background .15s}
+.tabs button[aria-current="true"] .ind{background:var(--accent-soft)}
+.tabs .dot{top:-3px;right:6px}
+.gesture{background:var(--card);height:20px;display:grid;place-items:center}
+.gesture i{width:108px;height:4px;border-radius:2px;background:var(--ink);opacity:.55}
+.toast{left:12px;right:12px;bottom:96px;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.25)}
+.card{border-radius:16px}
+.btn{border-radius:20px;padding:7px 14px}
+/* Gerçek telefonda çerçevesiz, tam ekran */
+@media (max-width:540px){
+  body{display:block}
+  .device{height:100vh;height:100dvh;width:100%;aspect-ratio:auto;padding:0;border-radius:0;box-shadow:none;background:none}
+  .device .screen{border-radius:0}
+  .punch,.status,.gesture{display:none}
+  .appbar{padding-top:max(12px,env(safe-area-inset-top))}
+  .tabs{padding-bottom:max(10px,env(safe-area-inset-bottom))}
+}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="device">
+<div class="punch" aria-hidden="true"></div>
+<div class="screen" id="screen">
+  <div class="status" aria-hidden="true"><span class="num">11:45</span><span class="sicons">
+    <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M12 20.5 1.5 9.2a15 15 0 0 1 21 0z"/></svg>
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M2 22h20V2z"/></svg>
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M9 2h6v2h2a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h2zm-1 6v12h8V8z"/></svg>
+    <span style="font-size:11.5px">78%</span></span></div>
+  <div class="appbar" id="appbar"></div>
+  <div class="scroll" id="view"></div>
+  <nav class="tabs" id="tabs" aria-label="Uygulama menüsü"></nav>
+  <div class="gesture" aria-hidden="true"><i></i></div>
+  <div class="toast" id="toast" role="status"></div>
+</div>
+</div>
+
+<script>
+// ---------- Örnek veri ----------
+const TL = n => '₺' + Math.round(n).toLocaleString('tr-TR');
+const pct = n => '%' + Math.round(n*100);
+const team = [
+  {id:'emre',  ad:'Emre Yıldız',  durum:'sahada',  z:[14,22], satis:48200, hedef:62000, etkin:.71, ps:72, son:'Kaya Market · 11:42', x:120,y:150},
+  {id:'kerem', ad:'Kerem Aydın',  durum:'devamsiz',z:[0,18],  satis:0,     hedef:55000, etkin:0,   ps:null, son:'Rapor · 08:10 bildirdi', x:0,y:0},
+  {id:'selin', ad:'Selin Arslan', durum:'sahada',  z:[17,21], satis:61900, hedef:58000, etkin:.86, ps:81, son:'Göksu Şarküteri · 11:40', x:230,y:110},
+  {id:'burak', ad:'Burak Koç',    durum:'rotadisi',z:[9,20],  satis:22400, hedef:52000, etkin:.55, ps:64, son:'47 dk rota dışı · Dokuma', x:300,y:200},
+  {id:'hakan', ad:'Hakan Şimşek', durum:'sahada',  z:[12,19], satis:39800, hedef:50000, etkin:.68, ps:70, son:'Ahatlı Gıda · 11:31', x:180,y:240},
+  {id:'zeynep',ad:'Zeynep Kurt',  durum:'sahada',  z:[15,20], satis:54100, hedef:54000, etkin:.80, ps:78, son:'Şafak Büfe · 11:44', x:80,y:220},
+  {id:'onur',  ad:'Onur Çelik',   durum:'mola',    z:[11,22], satis:31500, hedef:57000, etkin:.59, ps:66, son:'Mola · 25 dk', x:250,y:60},
+  {id:'gokhan',ad:'Gökhan Polat', durum:'sahada',  z:[13,19], satis:44700, hedef:49000, etkin:.74, ps:75, son:'Teomanpaşa Market · 11:38', x:60,y:90},
+];
+const DUR = {sahada:['Sahada','ok'], devamsiz:['Devamsız','bad'], rotadisi:['Rota dışı','warn'], mola:['Molada','info']};
+const ini = s => s.split(' ').map(p=>p[0]).join('').slice(0,2);
+const sum = (k,i) => team.reduce((a,t)=>a+(i===undefined?t[k]:t[k][i]),0);
+
+const queue = [
+  {id:1, tip:'Devamsızlık', sev:'bad', imp:24600, src:'Canlı izleme', t:'Kerem Aydın raporlu. 18 planlı müşteri boşta.', d:'6 müşteri "mutlaka sipariş" listesinde. Pazartesi siparişleri Perşembe sevkiyatını besliyor.', acts:[['Rotayı devret','devamsizlik','pri'],['Sipariş kurtar','devamsizlik']]},
+  {id:2, tip:'Rota sapması', sev:'warn', imp:14200, src:'Canlı izleme', t:'Burak Koç 47 dk rota dışında (Dokuma).', d:'11 ziyaret kaldı, hedefin %43\'ünde. Bu hızla gün %58 kapanır.', acts:[['Plasiyeri aç','plasiyer:burak','pri'],['Ara','toast:Arama başlatılıyor (mockup)']]},
+  {id:3, tip:'Kayıp riski', sev:'warn', imp:9800, src:'Pusula', t:'Ekin Şarküteri: sipariş 3 haftada %62 düştü.', d:'Son ziyarette rakip stand fotoğraflandı. Aylık kayıp tahmini.', acts:[['Eşlik ziyareti planla','toast:Perşembe 10:00 eşlik ziyareti taslağı oluşturuldu (mockup)','pri'],['Mağazayı aç','magaza']]},
+  {id:4, tip:'Onay', sev:'info', imp:6300, src:'Onaylar', t:'Öz Akdeniz Büfe için %7 iskonto talebi.', d:'Limit %5. Selin Arslan 2 saattir onay bekliyor, müşteri yanında.', acts:[['Onayla','toast:İskonto onaylandı, Selin\'e bildirildi (mockup)','pri'],['Reddet','toast:Red nedeni seçme ekranı açılır (mockup)','bad']]},
+  {id:5, tip:'Stok dışı', sev:'warn', imp:4100, src:'Görüntü tanıma', t:'Kaya Market: 3 SKU rafta yok.', d:'11:38 raf fotoğrafından tespit edildi. Depoda stok var.', acts:[['Merch görevi ata','toast:Cem Uysal\'a raf dolum görevi atandı (mockup)','pri'],['Mağazayı aç','magaza']]},
+  {id:6, tip:'Hedef riski', sev:'info', imp:3900, src:'Tahmin', t:'Onur Çelik günü %61 ile kapatacak.', d:'Etkin ziyaret oranı %59, ekip ortalaması %72.', acts:[['Koçluk önerisini gör','plasiyer:onur','pri']]},
+  {id:7, tip:'Masraf', sev:'info', imp:1240, src:'Onaylar', t:'4 masraf kalemi onay bekliyor.', d:'Yakıt, otopark, yemek. Hepsi politika sınırında.', acts:[['Onaylara git','onaylar','pri']]},
+];
+const SEVC = {bad:'var(--bad)',warn:'var(--warn)',info:'var(--accent)'};
+
+const coaching = {
+  burak:{skill:.62, will:.35, kpi:'Etkin ziyaret %55 (ekip %72), rota uyumu %61', konu:'Son 2 haftada öğleden sonra rota dışına çıkma sıklaştı. Motivasyon konuşması: hedef bölünmesi ve öğleden sonra rotasının yeniden sıralanması. Perşembe eşlik ziyareti önerilir.'},
+  onur:{skill:.38, will:.70, kpi:'Etkin ziyaret %59, sepet başı SKU 4,1 (ekip 6,3)', konu:'İstekli ama satış tekniği zayıf: sepet genişletmede zorlanıyor. Çapraz satış senaryosu üzerine 15 dk saha içi eğitim. Selin Arslan ile bir gün birlikte çalışması önerilir.'},
+  emre:{skill:.72, will:.74, kpi:'Etkin ziyaret %71, Perfect Store 72', konu:'Dengeli performans. Raf payı hedefini öne çıkarın: Kaya Market ve iki market daha %40 hedefinin altında.'},
+};
+
+const reassign = [
+  {to:'Selin Arslan', n:6, km:'+9 km', kap:'4 ziyaret boşluğu + 2 öğleden sonra', must:3},
+  {to:'Gökhan Polat', n:5, km:'+6 km', kap:'5 ziyaret boşluğu', must:2},
+  {to:'Zeynep Kurt',  n:4, km:'+11 km', kap:'4 ziyaret boşluğu', must:1},
+  {to:'Perşembe\'ye ertele', n:3, km:'—', kap:'Düşük öncelik, sipariş günü değil', must:0},
+];
+const recovery = [
+  {m:'Göksu Bakkal', hist:'8 haftanın 8\'inde Pzt sipariş', tut:3450, lines:'Gazoz 1L ×24 · Su 0,5L ×48 · Meyve suyu 200ml ×36'},
+  {m:'Varsak Tekel', hist:'8 haftanın 7\'sinde Pzt sipariş', tut:2980, lines:'Soğuk çay 500ml ×24 · Gazoz 330ml ×48'},
+  {m:'Altınova Market', hist:'8 haftanın 8\'inde Pzt sipariş', tut:5120, lines:'Gazoz 2,5L ×18 · Su 1,5L ×36 · Meyve suyu 1L ×24'},
+  {m:'Duraliler Büfe', hist:'8 haftanın 6\'sında Pzt sipariş', tut:1840, lines:'Gazoz 330ml ×24 · Enerji 250ml ×12'},
+];
+const approvals = [
+  {tip:'İskonto', k:'Selin Arslan · Öz Akdeniz Büfe', d:'%7 iskonto (limit %5), sipariş ₺6.300', yas:'2 sa', sev:'warn'},
+  {tip:'Yeni müşteri', k:'Hakan Şimşek · Doğa Gıda, Ahatlı', d:'Vergi levhası ve konum eklendi', yas:'1 gün', sev:'info'},
+  {tip:'İzin', k:'Hakan Şimşek', d:'28–29 Kasım, yıllık izin. 34 planlı ziyaret etkilenir', yas:'3 sa', sev:'info'},
+  {tip:'Masraf', k:'Zeynep Kurt', d:'Yakıt ₺850 · Otopark ₺90 · Yemek ₺210', yas:'5 sa', sev:'info'},
+  {tip:'Masraf', k:'Gökhan Polat', d:'Yakıt ₺90', yas:'6 sa', sev:'info'},
+];
+const league = [
+  {ad:'Selin Arslan', p:1840, d:'+3'},{ad:'Zeynep Kurt', p:1715, d:'+1'},{ad:'Gökhan Polat', p:1560, d:'−1'},
+  {ad:'Emre Yıldız', p:1490, d:'+2'},{ad:'Hakan Şimşek', p:1205, d:'0'},{ad:'Onur Çelik', p:980, d:'−2'},
+  {ad:'Burak Koç', p:870, d:'−3'},{ad:'Kerem Aydın', p:820, d:'0'},
+];
+const pushes = [
+  {t:'şimdi', h:'Devamsızlık', b:'Kerem Aydın bugün raporlu. 18 müşteri için devir önerisi hazır.'},
+  {t:'11:38', h:'Stok dışı tespit', b:'Kaya Market: 3 SKU rafta yok (fotoğraf analizi). Merch görevi atanabilir.'},
+  {t:'11:12', h:'Rota sapması', b:'Burak Koç 30 dakikadır planlı rotanın dışında.'},
+  {t:'10:05', h:'Onay bekliyor', b:'Selin Arslan, Öz Akdeniz Büfe için %7 iskonto istiyor.'},
+  {t:'09:00', h:'Günün planı', b:'Ekip hedefi ₺437.000 · 161 planlı ziyaret · 7 öncelikli aksiyon.'},
+];
+
+// ---------- Ekran tanımları ----------
+const SCREENS = {
+ bugun:{ad:'Bugün', tab:'bugun', status:'mix',
+   why:'Şefin günü açtığı ekran. Mevcut ekip özetinin üstüne etki sıralı kuyruğun ilk üç maddesi ve Perfect Store skoru geliyor.',
+   cur:['Ekip günlük toplamları ve satış performansı','Plasiyer kompakt kartları ve canlı durum','Ziyaret sonuçları'],
+   neu:['"Önce bunlar": etki sıralı aksiyon kuyruğunun ilk 3 maddesi','Ekip Perfect Store skoru (bulunurluk, planogram, raf payı ve stand birleşik)'],
+   api:[['/api/v1/daily-activity/totals'],['/api/v1/daily-activity'],['/api/v1/actions/queue?top=3','n'],['/api/v1/perfect-store/team','n']]},
+ aksiyonlar:{ad:'Aksiyon kuyruğu', tab:'aksiyonlar', status:'new',
+   why:'Pusula bulguları, onaylar, canlı izleme istisnaları ve tahminler tek listede, tahmini TL etkisine göre sıralı. Her maddede doğrudan aksiyon butonu var.',
+   cur:['Pusula bulgu ve aksiyonları (kural tabanlı)','Onaylar listesi','Canlı izleme verisi'],
+   neu:['Kaynaktan bağımsız tek kuyruk','Tahmini TL etkisi ve sıralama','Gün içinde yeniden sıralama','Kart üzerinden tek dokunuşla aksiyon'],
+   api:[['/api/v1/pusula/results'],['/api/v1/approvals/summary'],['/api/v1/actions/queue','n'],['/api/v1/actions/{id}/resolve','n']]},
+ ekip:{ad:'Ekip izleme', tab:'ekip', status:'cur',
+   why:'Bugünkü saha izleme ve ekip haritası ekranının sadeleştirilmiş hali. Rota dışı ve devamsız plasiyerler listenin en üstünde.',
+   cur:['Ekip haritası ve plasiyer konumları','Ziyaret ilerlemesi, son ziyaret','Durum: sahada, mola, rota dışı'],
+   neu:['Listeyi istisnalar öne gelecek şekilde sıralama'],
+   api:[['/api/v1/daily-activity'],['/api/v1/daily-activity/members/{id}']]},
+ plasiyer:{ad:'Plasiyer detayı', tab:'ekip', status:'mix',
+   why:'Mevcut plasiyer gün görünümü korunuyor. Altına koçluk önerisi kartı ekleniyor: beceri ve istek ekseninde konum, hangi KPI ve önerilen konuşma.',
+   cur:['Gün özeti, ziyaret sonuçları, satış','Koçluk formu ve eşlik ziyareti'],
+   neu:['Skill/Will konumu','Önerilen koçluk konuşması (AI taslağı, şef düzenler)','Tek dokunuşla eşlik ziyareti planlama'],
+   api:[['/api/v1/daily-activity/members/{id}'],['/api/v1/coaching'],['/api/v1/coaching/suggestions/{memberId}','n']]},
+ devamsizlik:{ad:'Devamsızlık kurtarma', tab:'aksiyonlar', status:'new',
+   why:'Plasiyer gelmediğinde rotası yakınlık ve kapasiteye göre dağıtılır. Sipariş günü olan müşterilerde şef, sipariş geçmişinden önerilen siparişi onaylayıp X-Mobile\'a gönderir.',
+   cur:['İzin modülü ve izindeki planlı ziyaretler (leaves/planned-visits)'],
+   neu:['Rota devri önerisi (mesafe ve kapasite)','Sipariş geçmişinden önerilen sipariş','Şefin plasiyer adına sipariş göndermesi (X-Mobile / SGO-MatriX entegrasyonu gerekir)'],
+   api:[['/api/v1/leaves/planned-visits'],['/api/v1/route-planning'],['/api/v1/coverage/reassign-proposal','n'],['/api/v1/orders/recovery-proposal','n']]},
+ magaza:{ad:'Mağaza kartı', tab:'magaza', status:'mix',
+   why:'Mevcut müşteri kartına üç katman ekleniyor: Perfect Store skor kırılımı, raf fotoğrafı analizi ve ziyaret öncesi AI özeti.',
+   cur:['Müşteri kartı, cari ve fatura','Planogram, raf payı, stand ve bulunurluk kontrolleri','Müşteri Rehberi (kural tabanlı)'],
+   neu:['Perfect Store skoru ve kırılımı','Raf fotoğrafından görüntü tanıma (facing sayımı, eksik SKU)','Ziyaret öncesi AI özeti, kaynak gösterimli'],
+   api:[['/api/v1/customers/{id}'],['/api/v1/planogram-checks'],['/api/v1/shelf-share-results'],['/api/v1/perfect-store/customers/{id}','n'],['/api/v1/ir/analyses','n'],['/api/v1/assistant/visit-brief','n']]},
+ onaylar:{ad:'Onaylar', tab:'daha', status:'cur',
+   why:'Mevcut onay ekranı. Tek fark, bekleme süresi ve etkiye göre sıralama ve aynı kayıtların aksiyon kuyruğuna da düşmesi.',
+   cur:['İskonto, yeni müşteri, izin, masraf onayları','Onay ve red akışı (WorkFlow)'],
+   neu:['Bekleme süresi görünür, kuyrukla senkron'],
+   api:[['/api/v1/approvals'],['/api/v1/approvals/{id}/decision']]},
+ lig:{ad:'Lig ve yarışma', tab:'daha', status:'new',
+   why:'Şefin kısa dönemli yarışma kurduğu ekran. Puanlar mevcut verilerden üretilir: soğutucu dolum, Perfect Store artışı, etkin ziyaret.',
+   cur:['Teşvik modülü (prim ve hedef kuralları)'],
+   neu:['Haftalık ve aylık lig tablosu','Şefin kurduğu kural tabanlı yarışma','Sıra değişimi göstergesi'],
+   api:[['/api/v1/incentives'],['/api/v1/contests','n'],['/api/v1/contests/{id}/standings','n']]},
+ bildirimler:{ad:'Anlık bildirimler', tab:'daha', status:'new',
+   why:'Bugün bildirimler uygulama açıkken yerel olarak gösteriliyor, APK\'da FCM yok. Kuyruğun değeri, şefe uygulama kapalıyken ulaşabilmesine bağlı.',
+   cur:['Bildirim listesi (uygulama içi)','Yerel bildirim (flutter_local_notifications)'],
+   neu:['FCM ile push','Bildirim türü bazında açma/kapama','Bildirimden ilgili ekrana derin bağlantı'],
+   api:[['/api/v1/notifications'],['/api/v1/devices/push-token','n'],['/api/v1/notifications/preferences','n']]},
+};
+const ORDER = ['bugun','aksiyonlar','ekip','plasiyer','devamsizlik','magaza','onaylar','lig','bildirimler'];
+const TABS = [['bugun','Bugün','M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z'],['aksiyonlar','Aksiyonlar','M4 6h16M4 12h10M4 18h6'],['ekip','Ekip','M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm8 0a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 20c0-3 3-5 6-5s6 2 6 5m2-5c3 0 6 2 6 5'],['magaza','Mağazalar','M4 9l1.5-5h13L20 9M4 9v11h16V9M4 9h16M9 20v-6h6v6'],['daha','Daha','M5 12h.01M12 12h.01M19 12h.01']];
+
+let state = {screen:'bugun', rep:'burak', filter:'Tümü', hl:true};
+
+// ---------- Yardımcılar ----------
+const newTag = () => '<span class="tag new newtag">YENİ</span>';
+const curTag = () => '<span class="tag cur newtag">MEVCUT</span>';
+function bar(v, c){ return `<div class="bar"><i style="width:${Math.min(100,Math.round(v*100))}%;${c?`background:${c}`:''}"></i></div>`; }
+function act([label,target,kind]){ return `<button class="btn ${kind||''}" data-go="${target}">${label}</button>`; }
+function ring(score){
+  const r=32, c=2*Math.PI*r, col = score>=75?'var(--ok)':score>=65?'var(--warn)':'var(--bad)';
+  return `<svg class="ring" viewBox="0 0 78 78" role="img" aria-label="Perfect Store ${score}"><circle cx="39" cy="39" r="${r}" fill="none" stroke="var(--line)" stroke-width="7"/><circle cx="39" cy="39" r="${r}" fill="none" stroke="${col}" stroke-width="7" stroke-linecap="round" stroke-dasharray="${c*score/100} ${c}" transform="rotate(-90 39 39)"/><text x="39" y="44" text-anchor="middle" font-size="19" font-weight="700" fill="var(--ink)" font-family="IBM Plex Sans, Segoe UI, sans-serif">${score}</text></svg>`;
+}
+
+// ---------- Ekran içerikleri ----------
+const views = {
+ bugun(){
+  const s=sum('satis'), h=sum('hedef'), zv=sum('z',0), zp=sum('z',1);
+  const top = queue.slice(0,3).map(qItem).join('');
+  const sorted = [...team].sort((a,b)=>({devamsiz:0,rotadisi:1,mola:2,sahada:3}[a.durum]-{devamsiz:0,rotadisi:1,mola:2,sahada:3}[b.durum]));
+  return `
+  <div class="kpis">
+    <div class="kpi"><div class="k">Satış / hedef</div><div class="v">${pct(s/h)}</div><div class="mut num">${TL(s)} / ${TL(h)}</div>${bar(s/h)}</div>
+    <div class="kpi"><div class="k">Ziyaret</div><div class="v num">${zv}<span class="mut" style="font-size:14px"> / ${zp}</span></div><div class="mut">Etkin oran %72</div>${bar(zv/zp)}</div>
+    <div class="kpi isnew">${newTag()}<div class="k">Perfect Store</div><div class="v">72</div><div class="d" style="color:var(--ok)">+3 geçen haftaya göre</div>${bar(.72,'var(--ok)')}</div>
+    <div class="kpi"><div class="k">Tahsilat</div><div class="v num">${TL(86400)}</div><div class="mut">Hedef ${TL(120000)}</div>${bar(86400/120000)}</div>
+  </div>
+  <div class="card isnew">${newTag()}<h4><span class="lbl">Önce bunlar</span><button class="btn" data-go="aksiyonlar">Tümü (7)</button></h4><div class="list">${top}</div></div>
+  <div class="card"><h4><span class="lbl">Ekip</span><span class="mut">8 plasiyer</span></h4><div class="list">${sorted.map(repRow).join('')}</div></div>`;
+ },
+ aksiyonlar(){
+  const types=['Tümü',...new Set(queue.map(q=>q.tip))];
+  const list = queue.filter(q=>state.filter==='Tümü'||q.tip===state.filter);
+  const total = list.reduce((a,q)=>a+q.imp,0);
+  return `
+  <div class="card isnew">${newTag()}<div class="row"><div class="grow"><div class="nm">${list.length} açık aksiyon</div><div class="mut">Tahmini toplam etki ${TL(total)} · 11:45'te yeniden sıralandı</div></div></div></div>
+  <div class="chipbar">${types.map(t=>`<button data-filter="${t}" aria-pressed="${state.filter===t}">${t}</button>`).join('')}</div>
+  <div class="card isnew"><div class="list">${list.map(qItem).join('')}</div></div>
+  <p class="mut small">Sıralama: tahmini TL etkisi × aciliyet. Etki tahmini müşterinin son 8 haftalık sipariş ortalamasından hesaplanır.</p>`;
+ },
+ ekip(){
+  const dots = team.filter(t=>t.x).map(t=>{const c={sahada:'var(--ok)',rotadisi:'var(--warn)',mola:'var(--accent)'}[t.durum];return `<g data-rep="${t.id}" style="cursor:pointer" tabindex="0" role="button" aria-label="${t.ad}"><circle cx="${t.x}" cy="${t.y}" r="11" fill="${c}" stroke="var(--card)" stroke-width="2.5"/><text x="${t.x}" y="${t.y+3.5}" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff">${ini(t.ad)}</text></g>`}).join('');
+  const sorted = [...team].sort((a,b)=>({devamsiz:0,rotadisi:1,mola:2,sahada:3}[a.durum]-{devamsiz:0,rotadisi:1,mola:2,sahada:3}[b.durum]));
+  return `
+  <div class="card" style="padding:0;overflow:hidden">${curTag()}
+   <svg viewBox="0 0 340 280" style="display:block;width:100%;background:var(--accent-soft)" role="img" aria-label="Ekip haritası, Kepez">
+    <path d="M0 70 C80 60 140 100 340 80" stroke="var(--card)" stroke-width="9" fill="none"/>
+    <path d="M40 0 C60 90 110 160 130 280" stroke="var(--card)" stroke-width="7" fill="none"/>
+    <path d="M0 190 C120 170 220 220 340 180" stroke="var(--card)" stroke-width="7" fill="none"/>
+    <path d="M220 0 C230 90 270 160 280 280" stroke="var(--card)" stroke-width="5" fill="none"/>
+    <text x="14" y="58" font-size="10" fill="var(--muted)">Teomanpaşa</text><text x="150" y="130" font-size="10" fill="var(--muted)">Göksu</text><text x="268" y="236" font-size="10" fill="var(--muted)">Dokuma</text><text x="96" y="268" font-size="10" fill="var(--muted)">Ahatlı</text><text x="98" y="176" font-size="10" fill="var(--muted)">Varsak</text>
+    <path d="M300 200 L262 160" stroke="var(--warn)" stroke-width="2" stroke-dasharray="4 3"/><circle cx="262" cy="160" r="4" fill="none" stroke="var(--warn)" stroke-width="2"/>
+    ${dots}
+   </svg></div>
+  <div class="card isnew">${newTag()}<div class="small"><b>İstisnalar önde:</b> devamsız ve rota dışı plasiyerler listenin başında.</div></div>
+  <div class="card"><div class="list">${sorted.map(repRow).join('')}</div></div>`;
+ },
+ plasiyer(){
+  const t = team.find(x=>x.id===state.rep) || team[3];
+  const co = coaching[t.id] || coaching.emre;
+  const hours=[0,2100,5400,9800,14600,t.satis*.62,t.satis*.81,t.satis];
+  const max=Math.max(t.hedef*.9,...hours); const W=300,H=70;
+  const pts=hours.map((v,i)=>`${(i/(hours.length-1))*W},${H-(v/max)*H}`).join(' ');
+  const qx=co.skill*120, qy=120-co.will*120;
+  return `
+  <div class="card">${curTag()}
+   <div class="row"><div class="av">${ini(t.ad)}</div><div class="grow"><div class="nm">${t.ad}</div><div class="mut">${t.son}</div></div><span class="pill ${DUR[t.durum][1]}">${DUR[t.durum][0]}</span></div>
+   <div class="kpis" style="margin-top:10px">
+    <div class="kpi"><div class="k">Satış</div><div class="v num" style="font-size:18px">${TL(t.satis)}</div><div class="mut">${pct(t.satis/t.hedef)} hedef</div></div>
+    <div class="kpi"><div class="k">Ziyaret</div><div class="v num" style="font-size:18px">${t.z[0]} / ${t.z[1]}</div><div class="mut">Etkin ${pct(t.etkin)}</div></div>
+   </div>
+   <svg viewBox="-4 -4 ${W+8} ${H+22}" style="width:100%;margin-top:10px" role="img" aria-label="Saatlik kümülatif satış">
+    <line x1="0" y1="${H-(t.hedef*.9/max)*H}" x2="${W}" y2="${H-(t.hedef*.9/max)*H}" stroke="var(--muted)" stroke-dasharray="3 3" stroke-width="1"/>
+    <text x="${W}" y="${H-(t.hedef*.9/max)*H-4}" text-anchor="end" font-size="9" fill="var(--muted)">11:45 beklenen</text>
+    <polygon points="0,${H} ${pts} ${W},${H}" fill="var(--accent-soft)"/><polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="2"/>
+    <circle cx="${W}" cy="${H-(t.satis/max)*H}" r="3.5" fill="var(--accent)"/>
+    <text x="0" y="${H+14}" font-size="9" fill="var(--muted)">08:30</text><text x="${W}" y="${H+14}" font-size="9" fill="var(--muted)" text-anchor="end">11:45</text>
+   </svg>
+  </div>
+  <div class="card ai isnew">${newTag()}<h4><span class="lbl">Koçluk önerisi</span><span class="src">AI taslağı</span></h4>
+   <div style="display:grid;grid-template-columns:120px minmax(0,1fr);gap:12px;align-items:start">
+    <svg viewBox="-14 0 134 134" role="img" aria-label="Beceri ve istek matrisi">
+     <rect x="0" y="0" width="60" height="60" fill="var(--warn-soft)"/><rect x="60" y="0" width="60" height="60" fill="var(--ok-soft)"/>
+     <rect x="0" y="60" width="60" height="60" fill="var(--bad-soft)"/><rect x="60" y="60" width="60" height="60" fill="var(--accent-soft)"/>
+     <text x="30" y="32" font-size="8" text-anchor="middle" fill="var(--muted)">Yönlendir</text><text x="90" y="32" font-size="8" text-anchor="middle" fill="var(--muted)">Yetki ver</text>
+     <text x="30" y="92" font-size="8" text-anchor="middle" fill="var(--muted)">Yakın takip</text><text x="90" y="92" font-size="8" text-anchor="middle" fill="var(--muted)">Motive et</text>
+     <circle cx="${qx}" cy="${qy}" r="6" fill="var(--new)" stroke="var(--card)" stroke-width="2"/>
+     <text x="60" y="132" font-size="8" text-anchor="middle" fill="var(--muted)">Beceri →</text><text x="-6" y="60" font-size="8" text-anchor="middle" fill="var(--muted)" transform="rotate(-90 -6 60)">İstek →</text>
+    </svg>
+    <div class="small"><div class="mut">${co.kpi}</div><p style="margin:6px 0 0">${co.konu}</p></div>
+   </div>
+   <div class="btns">${act(['Eşlik ziyareti planla','toast:Perşembe eşlik ziyareti taslağı oluşturuldu (mockup)','pri'])}${act(['Koçluk formunu aç','toast:Mevcut koçluk formu açılır (mockup)'])}</div>
+  </div>
+  <div class="card">${curTag()}<h4><span class="lbl">Bugünkü ziyaretler</span></h4><div class="list small">
+   <div class="row"><span class="grow">Ahatlı Gıda</span><span class="pill ok">Sipariş ${TL(4200)}</span></div>
+   <div class="row"><span class="grow">Dokuma Büfe</span><span class="pill warn">Sipariş yok · kapalı</span></div>
+   <div class="row"><span class="grow">Yeşilyurt Market</span><span class="pill ok">Sipariş ${TL(3150)}</span></div>
+   <div class="row"><span class="grow">Kırcami Tekel</span><span class="pill bad">Planlı · gidilmedi</span></div>
+  </div></div>`;
+ },
+ devamsizlik(){
+  const totalRec = recovery.reduce((a,r)=>a+r.tut,0);
+  return `
+  <div class="card">${curTag()}<div class="row"><div class="av" style="background:var(--bad-soft);color:var(--bad)">KA</div><div class="grow"><div class="nm">Kerem Aydın · raporlu</div><div class="mut">08:10 bildirdi · 18 planlı müşteri · 6 "mutlaka sipariş"</div></div></div></div>
+  <div class="card isnew">${newTag()}<h4><span class="lbl">Rota devri önerisi</span><span class="mut">mesafe + kapasite</span></h4>
+   <table class="t"><thead><tr><th>Kime</th><th class="r">Müşteri</th><th class="r">Ek yol</th></tr></thead><tbody>
+   ${reassign.map(r=>`<tr><td><div class="nm" style="font-size:13px">${r.to}</div><div class="mut">${r.kap}${r.must?` · ${r.must} mutlaka sipariş`:''}</div></td><td class="r">${r.n}</td><td class="r">${r.km}</td></tr>`).join('')}
+   </tbody></table>
+   <div class="btns">${act(['Devri uygula ve bildir','toast:15 müşteri 3 plasiyere devredildi, 3 müşteri Perşembe\'ye ertelendi (mockup)','pri'])}${act(['Elle düzenle','toast:Sürükle-bırak devir ekranı açılır (mockup)'])}</div>
+  </div>
+  <div class="card ai isnew">${newTag()}<h4><span class="lbl">Sipariş kurtarma</span><span class="mut num">${TL(totalRec)}</span></h4>
+   <p class="small mut" style="margin:0 0 6px">Devir yapılsa bile öğleden önce ulaşılamayacak, sipariş günü bugün olan müşteriler. Öneri son 8 haftanın siparişlerinden.</p>
+   <div class="list small">${recovery.map(r=>`<div><div class="row"><span class="grow nm" style="font-size:13px">${r.m}</span><span class="num" style="font-weight:600">${TL(r.tut)}</span></div><div class="mut">${r.hist}</div><div>${r.lines}</div></div>`).join('')}</div>
+   <div class="btns">${act(['Müşteriyi arayıp onayla','toast:Arama listesi oluşturuldu (mockup)'])}${act(['X-Mobile\'a sipariş gönder','toast:4 sipariş taslağı X-Mobile kuyruğuna gönderildi (mockup)','pri'])}</div>
+  </div>`;
+ },
+ magaza(){
+  const parts=[['Bulunurluk',82],['Planogram',61],['Raf payı',54],['Stand',90],['Fiyat etiketi',70]];
+  const shelf = (row, items) => items.map((it,i)=>{const x=6+i*27;const y=10+row*44;
+    if(it==='x') return `<rect x="${x}" y="${y}" width="24" height="34" fill="none" stroke="var(--bad)" stroke-width="1.5" stroke-dasharray="3 2"/><text x="${x+12}" y="${y+21}" font-size="11" text-anchor="middle" fill="var(--bad)">?</text>`;
+    const c = it==='b'?'var(--accent)':'var(--muted)'; const o = it==='b'?.85:.35;
+    return `<rect x="${x}" y="${y}" width="24" height="34" rx="2" fill="${c}" opacity="${o}"/>${it==='b'?`<rect x="${x-1}" y="${y-1}" width="26" height="36" fill="none" stroke="var(--new)" stroke-width="1"/>`:''}`}).join('');
+  return `
+  <div class="card">${curTag()}<div class="row"><div class="grow"><div class="nm">Kaya Market</div><div class="mut">Varsak, Kepez · Plasiyer Emre Yıldız · Merch Cem Uysal</div></div><span class="pill warn">Bakiye ${TL(6850)} · 38 gün</span></div></div>
+  <div class="card isnew">${newTag()}<h4><span class="lbl">Perfect Store</span><span class="mut">son ziyaret 11:38</span></h4>
+   <div class="ps">${ring(68)}<div style="display:grid;gap:6px">${parts.map(([k,v])=>`<div class="psrow"><span>${k}</span>${bar(v/100, v>=75?'var(--ok)':v>=65?'var(--warn)':'var(--bad)')}<span class="num" style="text-align:right">${v}</span></div>`).join('')}</div></div>
+   <p class="small mut" style="margin:8px 0 0">Ağırlıklar yönetimden ayarlanır: bulunurluk 30, planogram 25, raf payı 20, stand 15, fiyat 10.</p>
+  </div>
+  <div class="card isnew">${newTag()}<h4><span class="lbl">Raf fotoğrafı analizi</span><span class="src">Görüntü tanıma</span></h4>
+   <svg viewBox="0 0 330 140" style="width:100%;background:var(--screen);border-radius:8px" role="img" aria-label="Raf fotoğrafı tespit sonucu: 42 facing, 13 bizim, 3 eksik SKU">
+    <line x1="0" y1="46" x2="330" y2="46" stroke="var(--line)" stroke-width="3"/><line x1="0" y1="90" x2="330" y2="90" stroke="var(--line)" stroke-width="3"/><line x1="0" y1="134" x2="330" y2="134" stroke="var(--line)" stroke-width="3"/>
+    ${shelf(0,['b','b','b','r','r','r','x','r','r','r','r','b'])}${shelf(1,['r','r','b','b','x','r','r','r','b','b','r','r'])}${shelf(2,['b','b','r','r','r','r','x','r','b','b','r','r'])}
+   </svg>
+   <div class="kpis" style="margin-top:8px">
+    <div class="kpi"><div class="k">Raf payı</div><div class="v" style="font-size:18px;color:var(--bad)">%31</div><div class="mut">Hedef %40 · 13/42 facing</div></div>
+    <div class="kpi"><div class="k">Rafta yok</div><div class="v" style="font-size:18px">3 SKU</div><div class="mut">Depoda stok var</div></div>
+   </div>
+   <div class="small" style="margin-top:8px">Şeftali meyve suyu 1L · Limonlu gazoz 330ml · Soğuk çay 500ml</div>
+   <div class="btns">${act(['Merch görevi ata','toast:Cem Uysal\'a raf dolum görevi atandı (mockup)','pri'])}</div>
+  </div>
+  <div class="card ai isnew">${newTag()}<h4><span class="lbl">Ziyaret öncesi özet</span><span class="src">AI taslağı</span></h4>
+   <p class="small" style="margin:0">Son 4 haftada ciro ${TL(41200)}, önceki 4 haftaya göre %8 düşük. Düşüş soğuk içecekte: soğutucu doluluğu %55. Açık bakiye ${TL(6850)}, 38 gündür ödenmedi. Önerilen konuşma: soğutucu dolumu ve şeftali 1L'nin yeniden listelenmesi. Bakiye için tahsilat planı konuşulmalı.</p>
+   <div class="mut" style="font-size:11px;margin-top:6px">Kaynaklar: satış geçmişi · 11:38 raf analizi · cari hesap · Pusula bulgusu #2214</div>
+  </div>
+  <div class="card">${curTag()}<h4><span class="lbl">Cari ve son faturalar</span></h4><div class="list small">
+   <div class="row"><span class="grow">FTR-2026-118834 · 16 Kas</span><span class="num">${TL(3920)}</span></div>
+   <div class="row"><span class="grow">FTR-2026-117412 · 9 Kas</span><span class="num">${TL(2930)}</span></div>
+  </div></div>`;
+ },
+ onaylar(){
+  return `<div class="card">${curTag()}<div class="list">${approvals.map(a=>`<div><div class="row"><span class="pill ${a.sev}">${a.tip}</span><span class="grow"></span><span class="mut isnew" style="position:relative">${a.yas} bekliyor</span></div><div class="nm" style="margin-top:4px">${a.k}</div><div class="mut">${a.d}</div><div class="btns">${act(['Onayla','toast:Onaylandı (mockup)','pri'])}${act(['Reddet','toast:Red nedeni seçme ekranı açılır (mockup)','bad'])}</div></div>`).join('')}</div></div>`;
+ },
+ lig(){
+  const max=league[0].p;
+  return `
+  <div class="card isnew">${newTag()}<div class="nm">Kasım · Soğutucu Dolum Ligi</div><div class="mut">Puan: soğutucu doluluk artışı ×2, Perfect Store artışı ×1, etkin ziyaret ×1 · bitiş 30 Kasım</div></div>
+  <div class="card isnew"><div class="list">${league.map((l,i)=>`<div class="row"><span class="rank">${i+1}</span><div class="av">${ini(l.ad)}</div><div class="grow"><div class="nm" style="font-size:13px">${l.ad}</div>${bar(l.p/max, i<3?'var(--new)':'var(--accent)')}</div><div style="text-align:right"><div class="num" style="font-weight:700">${l.p.toLocaleString('tr-TR')}</div><div class="mut num">${l.d==='0'?'—':l.d}</div></div></div>`).join('')}</div></div>
+  <div class="btns">${act(['Yeni yarışma kur','toast:Kural seçme sihirbazı açılır (mockup)','pri'])}${act(['Ekiple paylaş','toast:Lig tablosu ekibe duyuru olarak gönderildi (mockup)'])}</div>`;
+ },
+ bildirimler(){
+  return `
+  <div class="lock isnew">${newTag()}<div class="clock">11:45</div><div class="date">23 Kasım Pazartesi</div>
+   ${pushes.map(p=>`<div class="push"><div class="h"><span><b style="color:var(--ink)">XField Şef</b> · ${p.h}</span><span>${p.t}</span></div><div class="small" style="margin-top:2px">${p.b}</div></div>`).join('')}
+  </div>
+  <div class="card isnew">${newTag()}<h4><span class="lbl">Bildirim tercihleri</span></h4><div class="list small">
+   ${[['Devamsızlık ve rota sapması','Hemen'],['Onay talepleri','Hemen'],['Stok dışı ve görüntü tanıma','Saatlik özet'],['Günün planı','09:00'],['Lig değişimleri','Kapalı']].map(([k,v])=>`<div class="row"><span class="grow">${k}</span><span class="pill info">${v}</span></div>`).join('')}
+  </div></div>`;
+ },
+};
+
+function qItem(q){
+  return `<div class="q"><div class="sev" style="background:${SEVC[q.sev]}"></div><div><div class="top"><span class="mut">${q.tip} · <span class="src">${q.src}</span></span><span class="imp">${TL(q.imp)}</span></div><div class="nm" style="margin-top:2px">${q.t}</div><div class="mut">${q.d}</div><div class="btns">${q.acts.map(act).join('')}</div></div></div>`;
+}
+function repRow(t){
+  const [lbl,cls]=DUR[t.durum];
+  return `<div class="row" data-rep="${t.id}" style="cursor:pointer" tabindex="0" role="button" aria-label="${t.ad} detayı"><div class="av">${ini(t.ad)}</div><div class="grow"><div class="row" style="gap:6px"><span class="nm">${t.ad}</span><span class="pill ${cls}">${lbl}</span></div><div class="mut">${t.son}</div>${t.durum==='devamsiz'?'':bar(t.satis/t.hedef, t.satis>=t.hedef?'var(--ok)':undefined)}</div><div style="text-align:right"><div class="num" style="font-weight:600;font-size:13px">${t.z[0]}/${t.z[1]}</div><div class="mut num">${t.durum==='devamsiz'?'—':pct(t.satis/t.hedef)}</div></div></div>`;
+}
+
+// ---------- Render ----------
+const $ = id => document.getElementById(id);
+function render(){
+  const sc = SCREENS[state.screen];
+  const isTab = ['bugun','aksiyonlar','ekip','magaza'].includes(state.screen) || state.screen==='daha';
+  const title = state.screen==='plasiyer' ? (team.find(t=>t.id===state.rep)||{}).ad : sc.ad;
+  const sub = {bugun:'Murat Demir · Antalya Kepez-1',aksiyonlar:'Etkiye göre sıralı',ekip:'8 plasiyer · canlı',plasiyer:'Gün görünümü',devamsizlik:'Kerem Aydın · 23 Kasım',magaza:'Müşteri kartı',onaylar:'5 bekleyen',lig:'Kasım dönemi',bildirimler:'Push önizlemesi'}[state.screen];
+  $('appbar').innerHTML = `${['bugun','aksiyonlar','ekip','magaza'].includes(state.screen)?'':'<button class="back" data-back aria-label="Geri"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12H4m6-6-6 6 6 6"/></svg></button>'}<div><div class="t">${state.screen==='bugun'?'Günaydın, Murat Bey':title}</div><div class="s">${sub}</div></div>`;
+  $('view').innerHTML = views[state.screen]();
+  $('view').scrollTop = 0;
+  $('tabs').innerHTML = TABS.map(([id,l,d])=>`<button data-tab="${id}" aria-current="${sc.tab===id}"><span class="ind"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg>${id==='aksiyonlar'?'<span class="dot">7</span>':''}</span>${l}</button>`).join('');
+}
+let hist=[];
+function go(target){
+  if(target.startsWith('toast:')) return toast(target.slice(6));
+  if(target.startsWith('plasiyer:')){ state.rep=target.split(':')[1]; target='plasiyer'; }
+  if(target==='daha') target='onaylar';
+  if(!SCREENS[target]) return;
+  if(target!==state.screen) hist.push(state.screen);
+  state.screen=target; render();
+  try{ if(location.hash!=='#'+target) history.replaceState(null,'','#'+target); }catch(_){ /* korumalı çerçevede adres güncellenemez; gezinme yine çalışır */ }
+}
+let tt; function toast(msg){ const el=$('toast'); el.textContent=msg; el.classList.add('on'); clearTimeout(tt); tt=setTimeout(()=>el.classList.remove('on'),2600); }
+
+document.addEventListener('click', e=>{
+  const g=e.target.closest('[data-go]'); if(g){ go(g.dataset.go); return; }
+  const tb=e.target.closest('[data-tab]'); if(tb){ hist=[]; go(tb.dataset.tab); return; }
+  const r=e.target.closest('[data-rep]'); if(r){ const t=team.find(x=>x.id===r.dataset.rep); if(t.durum==='devamsiz') go('devamsizlik'); else go('plasiyer:'+t.id); return; }
+  const f=e.target.closest('[data-filter]'); if(f){ state.filter=f.dataset.filter; render(); return; }
+  if(e.target.closest('[data-back]')){ go(hist.pop()||'bugun'); hist.pop(); return; }
+});
+document.addEventListener('keydown', e=>{ if((e.key==='Enter'||e.key===' ') && e.target.matches('[data-rep]')){ e.preventDefault(); e.target.click(); }});
+window.addEventListener('hashchange', ()=>{ const h=location.hash.slice(1); if(SCREENS[h] && h!==state.screen){ state.screen=h; render(); }});
+const h0=location.hash.slice(1); if(SCREENS[h0]) state.screen=h0;
+render();
+</script>
+</body>
+</html>
